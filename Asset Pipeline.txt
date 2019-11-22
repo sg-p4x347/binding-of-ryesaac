@@ -1,0 +1,20 @@
+Asset Pipeline:
+=================================================================
+Create asset in progam of choice (Blender/Maya/3DsMax/etc.)
+	|
+Export asset in the FBX format to the Assets directory
+	|
+Import texture assets
+	|
+Map texture assets by name/id for lookup
+	|
+Import and parse FBX files at start of program into Model objects
+	|	
+	- Parse FbxMesh for control points and texture coordinates
+	|
+	- Generate vertex and index buffers
+	|
+	- Differentiate textured meshes and reference texture files
+	|
+Map model assets by name/id for lookup
+=================================================================

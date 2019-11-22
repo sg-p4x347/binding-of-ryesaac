@@ -1,0 +1,15 @@
+Rendering Pipeline:
+=================================================================
+Register textures with opengl
+	|
+Compile shaders
+	|
+	- Register shaders with opengl
+	|
+Game loop render
+	|
+	- Walk each mesh of each model
+	|
+	- Render
+	|
+=================================================================
