@@ -18,5 +18,6 @@ struct Vector3
 	Vector3 operator*(const float& scalar);
 	void operator/=(const float& scalar);
 	Vector3 operator/(const float& scalar);
+	void Normalize();
 };
 

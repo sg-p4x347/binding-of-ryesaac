@@ -12,8 +12,10 @@
 #include <thread>
 #include <mutex>
 #include <algorithm>
+#include <filesystem>
 #include <GL/glut.h>				// include GLUT library
 
+using std::filesystem::path;
 using std::cin;
 using std::cout;
 using std::endl;

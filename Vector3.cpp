@@ -71,3 +71,11 @@ Vector3 Vector3::operator/(const float& scalar)
 {
 	return Vector3(X / scalar, Y / scalar, Z / scalar);
 }
+
+void Vector3::Normalize()
+{
+	float length = Length();
+	X /= length;
+	Y /= length;
+	Z /= length;
+}
