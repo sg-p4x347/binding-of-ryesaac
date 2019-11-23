@@ -9,7 +9,7 @@ Bitmap::~Bitmap()
 {
 	delete[] m_pixels;
 }
-Bitmap Bitmap::FromFile(string file)
+Bitmap Bitmap::FromFile(path file)
 {
 	// Open the file
 	ifstream bmp(file, std::ios::binary);
@@ -52,7 +52,7 @@ Bitmap Bitmap::FromFile(string file)
 	}
 	return Bitmap(0, 0);
 }
-Pixel Bitmap::Get(int x, int y) const
+Pixel Bitmap::GetInstance(int x, int y) const
 {
 	if (x >= 0 && x < m_width && y >= 0 && y < m_height) {
 		return m_pixels[y * m_width + x];
@@ -80,7 +80,7 @@ void Bitmap::Set(size_t x, size_t y, size_t width, size_t height, Pixel& pixel)
 }
 void Bitmap::Add(size_t x, size_t y, Pixel& pixel)
 {
-	Set(x, y, Get(x, y) + pixel);
+	Set(x, y, GetInstance(x, y) + pixel);
 }
 void Bitmap::Add(size_t x, size_t y, size_t width, size_t height, Pixel& pixel)
 {
@@ -108,7 +108,7 @@ vector<uint8_t> Bitmap::GetOpaqueBitMask()
 	vector<uint8_t> bits(rowSize * m_height,0);
 	for (size_t y = 0; y < m_height; y++) {
 		for (size_t x = 0; x < m_width; x++) {
-			Pixel pixel = Get(x, y);
+			Pixel pixel = GetInstance(x, y);
 			if (pixel.A == 255) {
 				size_t byteIndex = x / 8;
 				uint8_t & byte = bits[y * rowSize + byteIndex];

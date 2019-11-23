@@ -55,16 +55,24 @@ void initialize() {
 	glClearColor(1, 1, 1, 1);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
 	glClearDepth(1.0f);                 // Set background depth to farthest
+	glEnable(GL_NORMALIZE);
 	glEnable(GL_DEPTH_TEST);			// Enable depth testing for z-culling
+	glEnable(GL_LIGHTING);
+	float pos[]{ 0.5f, 0.5f, -1.f,1.f};
+	glLightfv(GL_LIGHT0, GL_POSITION, pos);
+	glEnable(GL_LIGHT0);
+	glFrontFace(GL_CCW);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
 	glDepthFunc(GL_LESS);				// Set the type of depth-test
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glEnable(GL_DOUBLEBUFFER);
 	//glPolygonMode(GL_BACK, GL_NONE);
 	// Set the viewport to cover the new window
-	glViewport(-1, 1, -1, 1);
+	glViewport(-2, 2, -2, 2);
 
 	// Enable perspective projection with fovy, aspect, zNear and zFar
-	glOrtho(-1, 1, -1, 1, -1, 1);
+	glOrtho(-2, 2, -2, 2, -2, 2);
+	gluLookAt(0.5f, 0.5f, -1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
