@@ -32,38 +32,41 @@ Model ModelImporter::CreateFromFBX(path file)
 		lImporter->Destroy();
 
 
-		Import(lScene);
+		Model model = Import(lScene);
 
 		// Destroy the SDK manager and all the other objects it was handling.
 		lSdkManager->Destroy();
 
+		return model;
+
 	}
+	return Model();
 }
-void ModelImporter::ProcessNode(fbxsdk::FbxNode* node, std::vector<ModelMesh>& meshes)
+void ModelImporter::ProcessNode(fbxsdk::FbxNode* node, Model & model)
 {
 	auto attribute = node->GetNodeAttribute();
 	if (attribute) {
 		auto type = attribute->GetAttributeType();
 		// Attribute type determines how to process child nodes
 		if (type == fbxsdk::FbxNodeAttribute::eMesh) {
-			meshes.push_back(CreateMesh((fbxsdk::FbxMesh*)attribute));
+			ProcessMesh((fbxsdk::FbxMesh*)attribute, model);
 		}
 		else {
-			ProcessNodeChildren(node, meshes);
+			ProcessNodeChildren(node, model);
 		}
 	}
 	else {
-		ProcessNodeChildren(node, meshes);
+		ProcessNodeChildren(node, model);
 	}
 }
-void ModelImporter::ProcessNodeChildren(fbxsdk::FbxNode* node, std::vector<ModelMesh>& meshes)
+void ModelImporter::ProcessNodeChildren(fbxsdk::FbxNode* node, Model& model)
 {
 	for (int i = 0; i < node->GetChildCount(); i++) {
 		auto child = node->GetChild(i);
-		ProcessNode(child, meshes);
+		ProcessNode(child, model);
 	}
 }
-ModelMesh ModelImporter::CreateMesh(fbxsdk::FbxMesh* fbxMesh)
+void ModelImporter::ProcessMesh(fbxsdk::FbxMesh* fbxMesh, Model& model)
 {
 	ModelMesh mesh;
 	int index = 0;
@@ -123,10 +126,9 @@ ModelMesh ModelImporter::CreateMesh(fbxsdk::FbxMesh* fbxMesh)
 			// Indices
 			if (polyVertIndex >= 1 && polyVertIndex < vertexCount - 1) {
 				// triangulate polygon
-
-				mesh.Indices.push_back(index + polyVertIndex + 1);
-				mesh.Indices.push_back(index + polyVertIndex);
 				mesh.Indices.push_back(index);
+				mesh.Indices.push_back(index + polyVertIndex);
+				mesh.Indices.push_back(index + polyVertIndex + 1);
 
 			}
 		}
@@ -137,19 +139,21 @@ ModelMesh ModelImporter::CreateMesh(fbxsdk::FbxMesh* fbxMesh)
 	auto elementMaterial = fbxMesh->GetElementMaterial();
 	if (elementMaterial) {
 		fbxsdk::FbxSurfaceMaterial* fbxMaterial = fbxMesh->GetNode()->GetMaterial(elementMaterial->GetIndexArray().GetAt(0));
-		// fbxMaterial->GetName();
+		mesh.Material = model.Materials[fbxMaterial->GetName()];
 	}
 
-	return mesh;
+	// add the mesh to the model
+	model.Meshes.push_back(mesh);
 }
-void ModelImporter::ImportMaterials(fbxsdk::FbxScene* scene)
+void ModelImporter::ImportMaterials(fbxsdk::FbxScene* scene, Model& model)
 {
 	for (int i = 0; i < scene->GetMaterialCount(); i++) {
+		shared_ptr<Material> material = std::make_shared<Material>();
 		auto fbxMaterial = scene->GetMaterial(i);
 		/*material.name = fbxMaterial->GetName();
-		material.pixelShader = fbxMaterial->ShadingModel.Get() + ".cso";*/
+		material.pixelShader = fbxMaterial->ShadingModel.GetInstance() + ".cso";*/
 
-		//Get the implementation to see if it's a hardware shader.
+		//GetInstance the implementation to see if it's a hardware shader.
 		const fbxsdk::FbxImplementation* lImplementation = GetImplementation(fbxMaterial, FBXSDK_IMPLEMENTATION_HLSL);
 		fbxsdk::FbxString lImplemenationType = "HLSL";
 		if (!lImplementation)
@@ -212,7 +216,6 @@ void ModelImporter::ImportMaterials(fbxsdk::FbxScene* scene)
 				{
 					if (lFbxProp.GetSrcObjectCount<fbxsdk::FbxTexture>() > 0)
 					{
-						//do what you want with the textures
 						for (int j = 0; j < lFbxProp.GetSrcObjectCount<fbxsdk::FbxFileTexture>(); ++j)
 						{
 							fbxsdk::FbxFileTexture* lTex = lFbxProp.GetSrcObject<fbxsdk::FbxFileTexture>(j);
@@ -233,15 +236,15 @@ void ModelImporter::ImportMaterials(fbxsdk::FbxScene* scene)
 		{
 			//// We found a Phong material.  Display its properties.
 			//// Display the Ambient Color
-			//material.ambientColor = Convert(((FbxSurfacePhong*)fbxMaterial)->Ambient.Get());
+			//material.ambientColor = Convert(((FbxSurfacePhong*)fbxMaterial)->Ambient.GetInstance());
 			//// Display the Diffuse Color
-			//material.diffuseColor = Convert(((FbxSurfacePhong*)fbxMaterial)->Diffuse.Get());
+			//material.diffuseColor = Convert(((FbxSurfacePhong*)fbxMaterial)->Diffuse.GetInstance());
 			//// Display the Specular Color (unique to Phong materials)
-			//material.specularColor = Convert(((FbxSurfacePhong*)fbxMaterial)->Specular.Get());
+			//material.specularColor = Convert(((FbxSurfacePhong*)fbxMaterial)->Specular.GetInstance());
 			//// Display the Emissive Color
-			//material.emissiveColor = Convert(((FbxSurfacePhong*)fbxMaterial)->Emissive.Get());
+			//material.emissiveColor = Convert(((FbxSurfacePhong*)fbxMaterial)->Emissive.GetInstance());
 			////Opacity is Transparency factor now
-			//material.alpha = (float)((FbxSurfacePhong*)fbxMaterial)->TransparencyFactor.Get();
+			//material.alpha = (float)((FbxSurfacePhong*)fbxMaterial)->TransparencyFactor.GetInstance();
 			//// Display the Shininess
 			//material.specularPower = (float)((FbxSurfacePhong*)fbxMaterial)->Shininess;
 			//// Display the Reflectivity
@@ -251,32 +254,29 @@ void ModelImporter::ImportMaterials(fbxsdk::FbxScene* scene)
 		{
 			//// We found a Lambert material. Display its properties.
 			//// Display the Ambient Color
-			//material.ambientColor = Convert(((FbxSurfaceLambert*)fbxMaterial)->Ambient.Get());
+			//material.ambientColor = Convert(((FbxSurfaceLambert*)fbxMaterial)->Ambient.GetInstance());
 			//// Display the Diffuse Color
-			//material.diffuseColor = Convert(((FbxSurfaceLambert*)fbxMaterial)->Diffuse.Get());
+			//material.diffuseColor = Convert(((FbxSurfaceLambert*)fbxMaterial)->Diffuse.GetInstance());
 			//// Display the Emissive
-			//material.emissiveColor = Convert(((FbxSurfaceLambert*)fbxMaterial)->Emissive.Get());
+			//material.emissiveColor = Convert(((FbxSurfaceLambert*)fbxMaterial)->Emissive.GetInstance());
 			//// Display the Opacity
-			//material.alpha = (float)(((FbxSurfaceLambert*)fbxMaterial)->TransparencyFactor.Get());
+			//material.alpha = (float)(((FbxSurfaceLambert*)fbxMaterial)->TransparencyFactor.GetInstance());
 		}
 
 		// Diffuse Textures
-		vector<string> diffuseTextures = GetTextureConnections(fbxMaterial->FindProperty(fbxsdk::FbxSurfaceMaterial::sDiffuse));
+
+		auto diffuseTextures = GetTextureConnections(fbxMaterial->FindProperty(fbxsdk::FbxSurfaceMaterial::sDiffuse));
+		if (!diffuseTextures.empty())
+			material->DiffuseTexture = diffuseTextures[0];
 		//if (diffuseTextures.size()) material.textures.push_back(diffuseTextures[0]);
 		// Specular Textures
-		vector<string> specularTextures = GetTextureConnections(fbxMaterial->FindProperty(fbxsdk::FbxSurfaceMaterial::sSpecular));
+		//vector<string> specularTextures = GetTextureConnections(fbxMaterial->FindProperty(fbxsdk::FbxSurfaceMaterial::sSpecular));
 		//if (specularTextures.size()) material.textures.push_back(specularTextures[0]);
 		// Normal Textures
-		vector<string> normalTextures = GetTextureConnections(fbxMaterial->FindProperty(fbxsdk::FbxSurfaceMaterial::sNormalMap));
+		//vector<string> normalTextures = GetTextureConnections(fbxMaterial->FindProperty(fbxsdk::FbxSurfaceMaterial::sNormalMap));
 		//if (normalTextures.size()) material.textures.push_back(normalTextures[0]);
 
-
-	}
-}
-void ModelImporter::ImportTextures(fbxsdk::FbxScene* scene)
-{
-	for (int i = 0; i < scene->GetTextureCount(); i++) {
-		auto texture = scene->GetTexture(i);
+		model.Materials[fbxMaterial->GetName()] = material;
 	}
 }
 Vector3 ModelImporter::Convert(fbxsdk::FbxDouble3& double3)
@@ -312,15 +312,12 @@ M4 ModelImporter::Convert(fbxsdk::FbxMatrix& m)
 }
 Model ModelImporter::Import(fbxsdk::FbxScene* scene)
 {
-	// import textures
-	ImportTextures(scene);
-
+	Model model;
 	// import materials
-	ImportMaterials(scene);
+	ImportMaterials(scene, model);
 
 	// import meshes recursively
-	vector<ModelMesh> meshes;
-	ProcessNode(scene->GetRootNode(), meshes);
+	ProcessNode(scene->GetRootNode(), model);
 
-	return Model(meshes);
+	return model;
 }

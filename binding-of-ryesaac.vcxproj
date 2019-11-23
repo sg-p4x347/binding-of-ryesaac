@@ -166,12 +166,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Material.cpp" />
+    <ClCompile Include="ModelRepository.cpp" />
     <ClCompile Include="Bitmap.cpp" />
     <ClCompile Include="ModelImporter.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="ModelMesh.cpp" />
     <ClCompile Include="ModelMeshVertex.cpp" />
+    <ClCompile Include="TextureRepository.cpp" />
     <ClCompile Include="Transform.cpp" />
     <ClCompile Include="Pixel.cpp" />
     <ClCompile Include="Vector2.cpp" />
@@ -179,11 +182,14 @@
     <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Material.h" />
+    <ClInclude Include="ModelRepository.h" />
     <ClInclude Include="Bitmap.h" />
     <ClInclude Include="ModelImporter.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="ModelMesh.h" />
     <ClInclude Include="ModelMeshVertex.h" />
+    <ClInclude Include="TextureRepository.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="Matrix.h" />
     <ClInclude Include="pch.h" />

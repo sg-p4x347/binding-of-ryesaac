@@ -7,7 +7,7 @@ class Matrix
 public:
 	Matrix();
 	Matrix(std::initializer_list<double> elements);
-	double Get(int row, int column) const;
+	double GetInstance(int row, int column) const;
 	void Set(int row, int column, double value);
 
 	template<int RightColSize, int RightRowSize>
@@ -43,7 +43,7 @@ inline Matrix<RowSize, ColSize>::Matrix(std::initializer_list<double> elements)
 }
 
 template<int RowSize, int ColSize>
-inline double Matrix<RowSize, ColSize>::Get(int row, int column) const
+inline double Matrix<RowSize, ColSize>::GetInstance(int row, int column) const
 {
 	return m_data[row][column];
 }
@@ -60,7 +60,7 @@ inline Matrix<ColSize, RowSize> Matrix<RowSize, ColSize>::Transpose()
 	Matrix<ColSize, RowSize> transposed;
 	for (int row = 0; row < RowSize; row++) {
 		for (int column = 0; column < ColSize; column++) {
-			transposed.Set(column, row, Get(row, column));
+			transposed.Set(column, row, GetInstance(row, column));
 		}
 	}
 }
@@ -87,7 +87,7 @@ inline Matrix<RowSize, RightColSize> Matrix<RowSize, ColSize>::operator*(const M
 		for (int column = 0; column < RightColSize; column++) {
 			double dotProduct = 0.0;
 			for (int i = 0; i < RowSize; i++) {
-				dotProduct += Get(row, i) * right.Get(i, column);
+				dotProduct += GetInstance(row, i) * right.GetInstance(i, column);
 			}
 			product.Set(row, column, dotProduct);
 		}

@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "World.h"
+#include "ModelRepository.h"
 World::World()
 {
 }
@@ -9,12 +10,19 @@ void World::Render()
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear color and depth buffers
 
+	
 	glBegin(GL_TRIANGLES);
 	// Blue face
-	glColor3f(1.f, 0.f, 0.f);
-	glVertex3f(1.f, 0.f,0.f);
-	glVertex3f(0.f,1.f, 0.f);
-	glVertex3f(-1.f, 0.f, 0.f);
+	
+	Model& model = *ModelRepository::Get("ogp");
+	for (auto& mesh : model.Meshes) {
+		for (auto& index : mesh.Indices) {
+			ModelMeshVertex& vertex = mesh.Vertices[index];
+			glNormal3f(vertex.Normal.X, vertex.Normal.Y, vertex.Normal.Z);
+			glVertex3f(vertex.Position.X, vertex.Position.Y, vertex.Position.Z);
+		}
+	}
+	
 	glEnd();
 
 	// flush out the buffer contents

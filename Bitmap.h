@@ -7,8 +7,8 @@ public:
 	Bitmap(size_t width, size_t height);
 	Bitmap(const Bitmap&& other);
 	~Bitmap();
-	static Bitmap FromFile(string file);
-	Pixel Get(int x, int y) const;
+	static Bitmap FromFile(path file);
+	Pixel GetInstance(int x, int y) const;
 	void Set(size_t x, size_t y, Pixel&& pixel);
 	void Set(size_t x, size_t y, Pixel& pixel);
 	void Set(size_t x, size_t y, size_t width, size_t height, Pixel& pixel);
