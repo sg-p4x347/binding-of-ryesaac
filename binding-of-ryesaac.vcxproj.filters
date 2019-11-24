@@ -1,9 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Model">
-      <UniqueIdentifier>{c4b9d7f6-d88b-4f5b-a649-874683d01b59}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Texture">
       <UniqueIdentifier>{d1c3e7be-a032-435f-b9aa-b1cf367af810}</UniqueIdentifier>
     </Filter>
@@ -13,88 +10,119 @@
     <Filter Include="World">
       <UniqueIdentifier>{8bd044c1-e33a-47e1-8a6e-8f81a7f30b7e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Geometry">
+      <UniqueIdentifier>{c4b9d7f6-d88b-4f5b-a649-874683d01b59}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ECS">
+      <UniqueIdentifier>{5f75259a-24ff-4a92-aead-d4bdc4b32928}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Model.cpp">
-      <Filter>Model</Filter>
-    </ClCompile>
-    <ClCompile Include="ModelImporter.cpp">
-      <Filter>Model</Filter>
-    </ClCompile>
-    <ClCompile Include="ModelMesh.cpp">
-      <Filter>Model</Filter>
-    </ClCompile>
-    <ClCompile Include="ModelMeshVertex.cpp">
-      <Filter>Model</Filter>
-    </ClCompile>
-    <ClCompile Include="Bitmap.cpp">
-      <Filter>Texture</Filter>
-    </ClCompile>
-    <ClCompile Include="Vector3.cpp">
-      <Filter>Math</Filter>
-    </ClCompile>
-    <ClCompile Include="Vector2.cpp">
-      <Filter>Math</Filter>
-    </ClCompile>
-    <ClCompile Include="Transform.cpp">
-      <Filter>Math</Filter>
-    </ClCompile>
-    <ClCompile Include="Pixel.cpp">
-      <Filter>Texture</Filter>
-    </ClCompile>
-    <ClCompile Include="World.cpp">
-      <Filter>World</Filter>
-    </ClCompile>
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="ModelRepository.cpp">
-      <Filter>Model</Filter>
+    <ClCompile Include="world\Position.cpp">
+      <Filter>World</Filter>
     </ClCompile>
-    <ClCompile Include="TextureRepository.cpp">
+    <ClCompile Include="world\World.cpp">
+      <Filter>World</Filter>
+    </ClCompile>
+    <ClCompile Include="world\Model.cpp">
+      <Filter>World</Filter>
+    </ClCompile>
+    <ClCompile Include="ecs\Component.cpp">
+      <Filter>ECS</Filter>
+    </ClCompile>
+    <ClCompile Include="geom\Material.cpp">
+      <Filter>Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="geom\Model.cpp">
+      <Filter>Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="geom\ModelImporter.cpp">
+      <Filter>Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="geom\ModelMesh.cpp">
+      <Filter>Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="geom\ModelMeshVertex.cpp">
+      <Filter>Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="geom\ModelRepository.cpp">
+      <Filter>Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="math\Utility.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="math\Vector2.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="math\Vector3.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="tex\Bitmap.cpp">
       <Filter>Texture</Filter>
     </ClCompile>
-    <ClCompile Include="Material.cpp" />
+    <ClCompile Include="tex\Pixel.cpp">
+      <Filter>Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="tex\TextureRepository.cpp">
+      <Filter>Texture</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ModelImporter.h">
-      <Filter>Model</Filter>
-    </ClInclude>
-    <ClInclude Include="Model.h">
-      <Filter>Model</Filter>
-    </ClInclude>
-    <ClInclude Include="ModelMesh.h">
-      <Filter>Model</Filter>
-    </ClInclude>
-    <ClInclude Include="ModelMeshVertex.h">
-      <Filter>Model</Filter>
-    </ClInclude>
-    <ClInclude Include="Bitmap.h">
-      <Filter>Texture</Filter>
-    </ClInclude>
-    <ClInclude Include="Transform.h">
-      <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="Matrix.h">
-      <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="Vector3.h">
-      <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="Vector2.h">
-      <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="Pixel.h">
-      <Filter>Texture</Filter>
-    </ClInclude>
-    <ClInclude Include="World.h">
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="world\World.h">
       <Filter>World</Filter>
     </ClInclude>
-    <ClInclude Include="pch.h" />
-    <ClInclude Include="ModelRepository.h">
-      <Filter>Model</Filter>
+    <ClInclude Include="world\Position.h">
+      <Filter>World</Filter>
     </ClInclude>
-    <ClInclude Include="TextureRepository.h">
+    <ClInclude Include="world\Model.h">
+      <Filter>World</Filter>
+    </ClInclude>
+    <ClInclude Include="ecs\Component.h">
+      <Filter>ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="ecs\EntityRepository.h">
+      <Filter>ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="geom\Material.h">
+      <Filter>Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="geom\Model.h">
+      <Filter>Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="geom\ModelImporter.h">
+      <Filter>Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="geom\ModelMesh.h">
+      <Filter>Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="geom\ModelMeshVertex.h">
+      <Filter>Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="geom\ModelRepository.h">
+      <Filter>Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="math\Matrix.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="math\Utility.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="math\Vector2.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="math\Vector3.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="tex\Bitmap.h">
       <Filter>Texture</Filter>
     </ClInclude>
-    <ClInclude Include="Material.h" />
+    <ClInclude Include="tex\Pixel.h">
+      <Filter>Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="tex\TextureRepository.h">
+      <Filter>Texture</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
