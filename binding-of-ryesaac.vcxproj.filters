@@ -19,9 +19,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="world\Position.cpp">
-      <Filter>World</Filter>
-    </ClCompile>
     <ClCompile Include="world\World.cpp">
       <Filter>World</Filter>
     </ClCompile>
@@ -66,6 +63,18 @@
     </ClCompile>
     <ClCompile Include="tex\TextureRepository.cpp">
       <Filter>Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="world\Room.cpp">
+      <Filter>World</Filter>
+    </ClCompile>
+    <ClCompile Include="world\Position.cpp">
+      <Filter>World</Filter>
+    </ClCompile>
+    <ClCompile Include="world\Agent.cpp">
+      <Filter>World</Filter>
+    </ClCompile>
+    <ClCompile Include="world\Player.cpp">
+      <Filter>World</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -123,6 +132,24 @@
     </ClInclude>
     <ClInclude Include="tex\TextureRepository.h">
       <Filter>Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="world\Room.h">
+      <Filter>World</Filter>
+    </ClInclude>
+    <ClInclude Include="world\Agent.h">
+      <Filter>World</Filter>
+    </ClInclude>
+    <ClInclude Include="world\Collision.h">
+      <Filter>World</Filter>
+    </ClInclude>
+    <ClInclude Include="world\Player.h">
+      <Filter>World</Filter>
+    </ClInclude>
+    <ClInclude Include="world\Door.h">
+      <Filter>World</Filter>
+    </ClInclude>
+    <ClInclude Include="world\Movement.h">
+      <Filter>World</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

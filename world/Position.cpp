@@ -3,11 +3,6 @@
 #include "Position.h"
 
 namespace world {
-	Position::Position()
-	{
-	}
-
-	Position::Position(Vector3 position) : Pos(position)
-	{
-	}
+	Position::Position() {}
+	Position::Position(Vector3 position) : Pos(position) {}
 }

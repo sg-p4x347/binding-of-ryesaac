@@ -12,7 +12,7 @@ namespace tex {
 	private:
 		TextureRepository();
 	private:
-		static path m_directory;
+		static const path k_directory;
 		map<string, shared_ptr<Bitmap>> m_textures;
 	};
 }

@@ -3,7 +3,7 @@
 #include "TextureRepository.h"
 
 namespace tex {
-	path TextureRepository::m_directory = "./Assets";
+	const path TextureRepository::k_directory = "./Assets";
 
 	TextureRepository& TextureRepository::GetInstance()
 	{
@@ -19,7 +19,7 @@ namespace tex {
 	TextureRepository::TextureRepository()
 	{
 		// Import all .bmp files in the assets directory
-		for (auto& entry : std::filesystem::directory_iterator(m_directory)) {
+		for (auto& entry : std::filesystem::directory_iterator(k_directory)) {
 			if (
 				entry.is_regular_file()
 				&& entry.path().has_extension()

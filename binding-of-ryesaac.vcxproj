@@ -179,11 +179,14 @@
     <ClCompile Include="math\Utility.cpp" />
     <ClCompile Include="math\Vector2.cpp" />
     <ClCompile Include="math\Vector3.cpp" />
+    <ClCompile Include="world\Agent.cpp" />
+    <ClCompile Include="world\Player.cpp" />
+    <ClCompile Include="world\Position.cpp" />
+    <ClCompile Include="world\Room.cpp" />
     <ClCompile Include="tex\Bitmap.cpp" />
     <ClCompile Include="tex\Pixel.cpp" />
     <ClCompile Include="tex\TextureRepository.cpp" />
     <ClCompile Include="world\Model.cpp" />
-    <ClCompile Include="world\Position.cpp" />
     <ClCompile Include="world\World.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -200,6 +203,12 @@
     <ClInclude Include="math\Vector2.h" />
     <ClInclude Include="math\Vector3.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="world\Agent.h" />
+    <ClInclude Include="world\Collision.h" />
+    <ClInclude Include="world\Door.h" />
+    <ClInclude Include="world\Movement.h" />
+    <ClInclude Include="world\Player.h" />
+    <ClInclude Include="world\Room.h" />
     <ClInclude Include="tex\Bitmap.h" />
     <ClInclude Include="tex\Pixel.h" />
     <ClInclude Include="tex\TextureRepository.h" />
