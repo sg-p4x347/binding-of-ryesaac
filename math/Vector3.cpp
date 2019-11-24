@@ -76,8 +76,15 @@ namespace math {
 	void Vector3::Normalize()
 	{
 		float length = Length();
-		X /= length;
-		Y /= length;
-		Z /= length;
+		if (length == 0.f) {
+			X = 0.f;
+			Y = 0.f;
+			Z = 0.f;
+		}
+		else {
+			X /= length;
+			Y /= length;
+			Z /= length;
+		}
 	}
 }

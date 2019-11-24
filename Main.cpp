@@ -27,6 +27,7 @@ using math::Vector2;
 void initialize();
 void update();
 void render();
+void renderTick(int value);
 void mouseMoveHandler(int cursorX, int cursorY);
 void keyHandler(unsigned char key, int x, int y);
 void keyUpHandler(unsigned char key, int x, int y);
@@ -44,16 +45,15 @@ int main(int argc, char** argv) {
 	// setting up
 	initialize();
 	// register a callback
-	glutDisplayFunc(render);
 	glutPassiveMotionFunc(mouseMoveHandler);
 	glutKeyboardFunc(keyHandler);
 	glutKeyboardUpFunc(keyUpHandler);
-	// get into an infinite loop
 	glutIdleFunc(update);
 	glutDisplayFunc(render);
 
 	g_world.Generate();
-
+	// Start 60 Hz frame rendering
+	glutTimerFunc(16, renderTick,0);
 	glutMainLoop();
 
 	return 0;
@@ -67,8 +67,6 @@ void initialize() {
 	glEnable(GL_NORMALIZE);
 	glEnable(GL_DEPTH_TEST);			// Enable depth testing for z-culling
 	glEnable(GL_LIGHTING);
-	float pos[]{ 0.5f, 0.5f, -1.f,1.f};
-	glLightfv(GL_LIGHT0, GL_POSITION, pos);
 	glEnable(GL_LIGHT0);
 	glFrontFace(GL_CCW);
 	glEnable(GL_CULL_FACE);
@@ -79,22 +77,26 @@ void initialize() {
 	// Set the viewport to cover the new window
 	glViewport(-2, 2, -2, 2);
 
-	// Enable perspective projection with fovy, aspect, zNear and zFar
-	glOrtho(-2, 2, -2, 2, -2, 2);
-	gluLookAt(0.5f, 0.5f, -1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f);
+	
+	
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 }
 void update()
 {
-	double elapsed = 0.0166666;
-
-	g_world.Update(elapsed);
-	render();
+	g_world.Update();
 }
 void render() {
-	g_world.Render();
+
+	double elapsed = 0.0166666;
+	g_world.RenderUpdate(elapsed);
+}
+
+void renderTick(int value)
+{
+	glutPostRedisplay();
+	glutTimerFunc(16,renderTick,0);
 }
 
 void mouseMoveHandler(int cursorX, int cursorY)

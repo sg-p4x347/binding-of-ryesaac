@@ -12,7 +12,7 @@ namespace geom {
 	private:
 		ModelRepository();
 	private:
-		static path m_directory;
+		static const path k_directory;
 		map<string, shared_ptr<Model>> m_models;
 	};
 }
