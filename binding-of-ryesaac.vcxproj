@@ -99,6 +99,7 @@
       <UndefinePreprocessorDefinitions>
       </UndefinePreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <ObjectFileName>$(IntDir)%(RelativeDir)</ObjectFileName>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -137,6 +138,7 @@
       </UndefinePreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <ObjectFileName>$(IntDir)%(RelativeDir)</ObjectFileName>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -166,37 +168,44 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Material.cpp" />
-    <ClCompile Include="ModelRepository.cpp" />
-    <ClCompile Include="Bitmap.cpp" />
-    <ClCompile Include="ModelImporter.cpp" />
+    <ClCompile Include="ecs\Component.cpp" />
+    <ClCompile Include="geom\Material.cpp" />
+    <ClCompile Include="geom\Model.cpp" />
+    <ClCompile Include="geom\ModelImporter.cpp" />
+    <ClCompile Include="geom\ModelMesh.cpp" />
+    <ClCompile Include="geom\ModelMeshVertex.cpp" />
+    <ClCompile Include="geom\ModelRepository.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="Model.cpp" />
-    <ClCompile Include="ModelMesh.cpp" />
-    <ClCompile Include="ModelMeshVertex.cpp" />
-    <ClCompile Include="TextureRepository.cpp" />
-    <ClCompile Include="Transform.cpp" />
-    <ClCompile Include="Pixel.cpp" />
-    <ClCompile Include="Vector2.cpp" />
-    <ClCompile Include="Vector3.cpp" />
-    <ClCompile Include="World.cpp" />
+    <ClCompile Include="math\Utility.cpp" />
+    <ClCompile Include="math\Vector2.cpp" />
+    <ClCompile Include="math\Vector3.cpp" />
+    <ClCompile Include="tex\Bitmap.cpp" />
+    <ClCompile Include="tex\Pixel.cpp" />
+    <ClCompile Include="tex\TextureRepository.cpp" />
+    <ClCompile Include="world\Model.cpp" />
+    <ClCompile Include="world\Position.cpp" />
+    <ClCompile Include="world\World.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Material.h" />
-    <ClInclude Include="ModelRepository.h" />
-    <ClInclude Include="Bitmap.h" />
-    <ClInclude Include="ModelImporter.h" />
-    <ClInclude Include="Model.h" />
-    <ClInclude Include="ModelMesh.h" />
-    <ClInclude Include="ModelMeshVertex.h" />
-    <ClInclude Include="TextureRepository.h" />
-    <ClInclude Include="Transform.h" />
-    <ClInclude Include="Matrix.h" />
+    <ClInclude Include="ecs\Component.h" />
+    <ClInclude Include="ecs\EntityRepository.h" />
+    <ClInclude Include="geom\Material.h" />
+    <ClInclude Include="geom\Model.h" />
+    <ClInclude Include="geom\ModelImporter.h" />
+    <ClInclude Include="geom\ModelMesh.h" />
+    <ClInclude Include="geom\ModelMeshVertex.h" />
+    <ClInclude Include="geom\ModelRepository.h" />
+    <ClInclude Include="math\Matrix.h" />
+    <ClInclude Include="math\Utility.h" />
+    <ClInclude Include="math\Vector2.h" />
+    <ClInclude Include="math\Vector3.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="Pixel.h" />
-    <ClInclude Include="Vector2.h" />
-    <ClInclude Include="Vector3.h" />
-    <ClInclude Include="World.h" />
+    <ClInclude Include="tex\Bitmap.h" />
+    <ClInclude Include="tex\Pixel.h" />
+    <ClInclude Include="tex\TextureRepository.h" />
+    <ClInclude Include="world\Model.h" />
+    <ClInclude Include="world\Position.h" />
+    <ClInclude Include="world\World.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -15,8 +15,14 @@
 	3.		Press Ctrl+F5					to EXECUTE
 -----------------------------------------------------------------------------------------*/
 #include "pch.h"
-#include "World.h"
-#include "Vector2.h"
+
+#include "world/World.h"
+using world::World;
+
+#include "math/Vector2.h"
+using math::Vector2;
+
+#include <GL/glut.h>
 
 void initialize();
 void update();
@@ -25,7 +31,7 @@ void mouseMoveHandler(int cursorX, int cursorY);
 void keyHandler(unsigned char key, int x, int y);
 void keyUpHandler(unsigned char key, int x, int y);
 
-World world;
+World g_world;
 
 int main(int argc, char** argv) {
 	glutInit(&argc, argv);
@@ -45,6 +51,9 @@ int main(int argc, char** argv) {
 	// get into an infinite loop
 	glutIdleFunc(update);
 	glutDisplayFunc(render);
+
+	g_world.Generate();
+
 	glutMainLoop();
 
 	return 0;
@@ -81,24 +90,24 @@ void update()
 {
 	double elapsed = 0.0166666;
 
-	world.Update(elapsed);
+	g_world.Update(elapsed);
 	render();
 }
 void render() {
-	world.Render();
+	g_world.Render();
 }
 
 void mouseMoveHandler(int cursorX, int cursorY)
 {
-	world.UpdateMousePosition(Vector2(cursorX, cursorY));
+	g_world.UpdateMousePosition(Vector2(cursorX, cursorY));
 }
 
 void keyHandler(unsigned char key, int x, int y)
 {
-	world.UpdateKeyState(key, true);
+	g_world.UpdateKeyState(key, true);
 }
 
 void keyUpHandler(unsigned char key, int x, int y)
 {
-	world.UpdateKeyState(key, false);
+	g_world.UpdateKeyState(key, false);
 }

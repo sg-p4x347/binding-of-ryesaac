@@ -1,29 +1,37 @@
 #pragma once
 
-#include <cmath>
 #include <vector>
-#include <map>
-#include <set>
-#include <iostream>
-#include <memory>
-#include <fstream>
-#include <bitset>
-#include <string>
-#include <thread>
-#include <mutex>
-#include <algorithm>
-#include <filesystem>
-#include <GL/glut.h>				// include GLUT library
+using std::vector;
 
-using std::filesystem::path;
+#include <map>
+using std::map;
+
+#include <set>
+using std::set;
+
+#include <fstream>
+using std::ifstream;
+
+#include <iostream>
 using std::cin;
 using std::cout;
 using std::endl;
-using std::string;
-using std::ifstream;
-using std::vector;
-using std::map;
-using std::set;
+
+#include <memory>
 using std::shared_ptr;
 using std::unique_ptr;
-using std::mutex;
+
+#include <string>
+using std::string;
+
+#include <tuple>
+using std::tuple;
+
+#include <utility>
+using std::pair;
+
+#include <filesystem>
+using std::filesystem::path;
+
+#include <algorithm>
+#include <cmath>
