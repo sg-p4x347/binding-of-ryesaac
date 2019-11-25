@@ -2,6 +2,7 @@
 .vs/
 /Debug/
 /Release/
+/x64/
 
 # Library files are too big for GitHub :(
 *.lib
