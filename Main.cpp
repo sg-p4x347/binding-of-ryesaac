@@ -22,6 +22,9 @@ using world::World;
 #include "math/Vector2.h"
 using math::Vector2;
 
+#include "tex/TextureRepository.h"
+using tex::TextureRepository;
+
 #include <GL/glut.h>
 
 void initialize();
@@ -67,7 +70,14 @@ void initialize() {
 	glEnable(GL_NORMALIZE);
 	glEnable(GL_DEPTH_TEST);			// Enable depth testing for z-culling
 	glEnable(GL_LIGHTING);
+	glShadeModel(GL_SMOOTH);
 	glEnable(GL_LIGHT0);
+	float pos[]{1.f,1.f,0.f,1.f };
+	glLightfv(GL_LIGHT0, GL_POSITION, pos);
+	float spotDir[]{ 0.f,-1.f,0.f };
+	glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, spotDir);
+	float ambient[]{ 0.5f,0.5f,0.5f,1.f };
+	glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
 	glFrontFace(GL_CCW);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
@@ -77,6 +87,22 @@ void initialize() {
 	// Set the viewport to cover the new window
 	glViewport(-2, 2, -2, 2);
 
+	auto texture = TextureRepository::Get("test");
+	if (texture) {
+		glEnable(GL_TEXTURE_2D);
+		// Create one OpenGL texture
+		GLuint textureID;
+		glGenTextures(1, &textureID);
+		// "Bind" the newly created texture : all future texture functions will modify this texture
+		glBindTexture(GL_TEXTURE_2D, textureID);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		// Give the image to OpenGL
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texture->GetWidth(), texture->GetHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, texture->GetPixels());
+	}
 	
 	
 	glEnable(GL_BLEND);
@@ -87,10 +113,9 @@ void update()
 {
 	g_world.Update();
 }
-void render() {
-
-	double elapsed = 0.0166666;
-	g_world.RenderUpdate(elapsed);
+void render() 
+{
+	g_world.Render();
 }
 
 void renderTick(int value)

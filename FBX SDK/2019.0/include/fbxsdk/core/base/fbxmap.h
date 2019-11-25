@@ -121,7 +121,7 @@ public:
 		return mTree.Insert(KeyValuePair(pKey, pValue));
 	}
 
-	/** Delete a key-value pair.
+	/** Remove a key-value pair.
 	* \param pKey The key.
 	* \return \c true if success, \c false if key is not found. */
 	inline bool Remove(const KeyType& pKey)

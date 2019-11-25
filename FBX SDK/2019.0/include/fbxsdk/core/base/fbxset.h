@@ -83,7 +83,7 @@ public:
 		return mTree.Insert(Value(pValue));
 	}
 
-	/** Delete a value.
+	/** Remove a value.
 	* \param pValue The value.
 	* \return \c true if success, \c false if value is not found. */
 	inline int Remove(const ValueType& pValue)

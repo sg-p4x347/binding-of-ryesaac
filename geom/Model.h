@@ -9,6 +9,7 @@ namespace geom {
 	{
 		Model();
 		Model(vector<ModelMesh>& meshes);
+		string Name;
 		vector<ModelMesh> Meshes;
 		map<string, shared_ptr<Material>> Materials;
 	};

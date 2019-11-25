@@ -161,11 +161,11 @@ protected:
 class FBXSDK_DLL FbxFileUtils
 {
 public:
-	/** Delete a file from disk.
+	/** Remove a file from disk.
 	  * \param pFileName_UTF8 The file to be deleted.
 	  * \return True if delete is successful.
 	  */
-    static bool Delete(const char* pFileName_UTF8);
+    static bool Remove(const char* pFileName_UTF8);
 
 	/** Rename a file on disk.
 	  * \param pFileName_UTF8 The file to be renamed.

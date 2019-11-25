@@ -9,6 +9,9 @@ using std::map;
 #include <set>
 using std::set;
 
+#include <queue>
+using std::queue;
+
 #include <fstream>
 using std::ifstream;
 

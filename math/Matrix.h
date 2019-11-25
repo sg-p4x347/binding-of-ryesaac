@@ -1,5 +1,6 @@
 #pragma once
 #include <initializer_list>
+#include "Vector3.h"
 
 namespace math {
 	template<int RowSize, int ColSize>
@@ -10,9 +11,11 @@ namespace math {
 		Matrix(std::initializer_list<double> elements);
 		double GetInstance(int row, int column) const;
 		void Set(int row, int column, double value);
-
+		double Get(int row, int column) const;
 		template<int RightColSize, int RightRowSize>
 		Matrix<RowSize, RightColSize> operator *(const Matrix<RightRowSize, RightColSize>& right);
+
+		Vector3 operator*(const Vector3& vec);
 
 		Matrix<ColSize, RowSize> Transpose();
 
@@ -56,6 +59,19 @@ namespace math {
 	}
 
 	template<int RowSize, int ColSize>
+	inline double Matrix<RowSize, ColSize>::Get(int row, int column) const
+	{
+		return m_data[row][column];
+	}
+
+	template<int RowSize, int ColSize>
+	inline Vector3 Matrix<RowSize, ColSize>::operator*(const Vector3& vec)
+	{
+		auto result = *this * Matrix<4, 1>{vec.X, vec.Y, vec.Z, 1.0};
+		return Vector3(result.Get(0,0), result.Get(1,0), result.Get(2,0));
+	}
+
+	template<int RowSize, int ColSize>
 	inline Matrix<ColSize, RowSize> Matrix<RowSize, ColSize>::Transpose()
 	{
 		Matrix<ColSize, RowSize> transposed;
@@ -70,7 +86,7 @@ namespace math {
 	inline Matrix<RowSize, ColSize> Matrix<RowSize, ColSize>::CreateIdentity()
 	{
 		Matrix<RowSize, ColSize> identity;
-		for (int i = 0; i < std::min(RowSize, ColSize); i++) {
+		for (int i = 0; i < min(RowSize, ColSize); i++) {
 			identity.Set(i, i, 1.0);
 		}
 		return identity;

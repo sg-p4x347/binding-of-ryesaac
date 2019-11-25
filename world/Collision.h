@@ -3,12 +3,21 @@
 
 #include "ecs/Component.h"
 
-struct Collision :
-	public ecs::Component
-{
-	struct Contact {
-		ecs::EntityID Collider;
-	};
-	vector<Contact> Contacts;
-};
+#include "geom/CollisionVolume.h"
 
+namespace world {
+	struct Collision :
+		public ecs::Component
+	{
+		Collision();
+		Collision(shared_ptr<geom::CollisionVolume> collisionVolume);
+		struct Contact {
+			ecs::EntityID Collider;
+			Vector3 Point;
+			Vector3 Normal;
+			float PenetrationDepth;
+		};
+		vector<Contact> Contacts;
+		shared_ptr<geom::CollisionVolume> CollisionVolume;
+	};
+}

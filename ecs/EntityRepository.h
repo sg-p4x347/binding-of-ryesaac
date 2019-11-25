@@ -18,6 +18,11 @@ namespace ecs {
 		EntityRepository();
 		template<typename ... EntityComps>
 		EntityID CreateEntity(EntityComps&&... components);
+		void Remove(EntityID id);
+		template<typename CompType>
+		void Remove(EntityID id);
+		template<typename First, typename Second, typename ... Rest>
+		void Remove(EntityID id);
 
 		template<typename ... QueryTypes>
 		EntityIterator<EntityRepository<CompTypes...>, QueryTypes...> GetIterator();
@@ -36,6 +41,33 @@ namespace ecs {
 	template<typename ...CompTypes>
 	inline EntityRepository<CompTypes...>::EntityRepository() : m_nextId(1)
 	{
+	}
+
+	template<typename ...CompTypes>
+	inline void EntityRepository<CompTypes...>::Remove(EntityID id)
+	{
+		Remove<CompTypes...>(id);
+	}
+	template<typename ...CompTypes>
+	template<typename CompType>
+	inline void EntityRepository<CompTypes...>::Remove(EntityID id)
+	{
+		auto& componentVector = std::get<vector<CompType>>(m_components);
+		for (int i = 0; i < componentVector.size(); i++) {
+			if (componentVector[i].ID == id) {
+				componentVector.erase(componentVector.begin() + i);
+			}
+			else if (componentVector[i].ID > id) {
+				return;
+			}
+		}
+	}
+	template<typename ...CompTypes>
+	template<typename First, typename Second, typename ... Rest>
+	inline void EntityRepository<CompTypes...>::Remove(EntityID id)
+	{
+		Remove<First>(id);
+		Remove<Second, Rest...>(id);
 	}
 
 	template<typename ...CompTypes>
@@ -189,6 +221,10 @@ namespace ecs {
 				m_end = true;
 				return;
 			}
+		}
+		if (componentVector[currentIndex.second].ID > entity) {
+			m_end = true;
+			return;
 		}
 		currentIndex.first = &(componentVector[currentIndex.second]);
 	}

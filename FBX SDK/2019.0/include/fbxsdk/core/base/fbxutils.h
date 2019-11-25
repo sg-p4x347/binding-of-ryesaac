@@ -131,11 +131,11 @@ public:
 	* \remark This function will create multiple folders if needed, and it also work for relative paths. */
 	static bool Create(const char* pFolderPathUTF8);
 
-	/** Delete the specified folder path and all its content recursively.
+	/** Remove the specified folder path and all its content recursively.
 	* \param pFolderPathUTF8 The folder path to delete, in UTF8 encoding.
 	* \return True if folder path was successfully deleted, false otherwise.
 	* \remark This function work for relative paths. It will search from the current work path. */
-	static bool Delete(const char* pFolderPathUTF8);
+	static bool Remove(const char* pFolderPathUTF8);
 
 #ifndef FBXSDK_ENV_WINSTORE
 	/** Verify if the folder contains items or not.
