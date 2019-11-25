@@ -76,6 +76,16 @@
     <ClCompile Include="world\Player.cpp">
       <Filter>World</Filter>
     </ClCompile>
+    <ClCompile Include="geom\CollisionVolume.cpp">
+      <Filter>Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="geom\ConvexHull.cpp">
+      <Filter>Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="geom\Sphere.cpp">
+      <Filter>Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="world\Collision.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -149,6 +159,21 @@
       <Filter>World</Filter>
     </ClInclude>
     <ClInclude Include="world\Movement.h">
+      <Filter>World</Filter>
+    </ClInclude>
+    <ClInclude Include="geom\CollisionUtil.h">
+      <Filter>Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="geom\CollisionVolume.h">
+      <Filter>Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="geom\ConvexHull.h">
+      <Filter>Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="geom\Sphere.h">
+      <Filter>Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="world\GraphNode.h">
       <Filter>World</Filter>
     </ClInclude>
   </ItemGroup>

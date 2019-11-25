@@ -35,6 +35,7 @@ namespace geom {
 
 
 			Model model = Import(lScene);
+			model.Name = file.stem().string();
 
 			// Destroy the SDK manager and all the other objects it was handling.
 			lSdkManager->Destroy();
@@ -108,7 +109,7 @@ namespace geom {
 						{
 							auto uv = uvElement->GetDirectArray().GetAt(lTextureUVIndex);
 							vertex.TextureCoordinate.X = (float)uv[0];
-							vertex.TextureCoordinate.Y = -(float)uv[1];
+							vertex.TextureCoordinate.Y = (float)uv[1];
 						}
 						break;
 						default:
@@ -125,15 +126,18 @@ namespace geom {
 					}
 				}
 				mesh.Vertices.push_back(vertex);
-				// Indices
-				if (polyVertIndex >= 1 && polyVertIndex < vertexCount - 1) {
-					// triangulate polygon
-					mesh.Indices.push_back(index);
-					mesh.Indices.push_back(index + polyVertIndex);
-					mesh.Indices.push_back(index + polyVertIndex + 1);
-
-				}
+				
 			}
+			// Triangulate as fan
+			// triangulate polygon
+
+			for (int triangleIndex = 0; triangleIndex < vertexCount - 2; triangleIndex++) {
+				mesh.Indices.push_back(index);
+				mesh.Indices.push_back(index + triangleIndex + 1);
+				mesh.Indices.push_back(index + triangleIndex + 2);
+			}
+			
+
 			index += vertexCount;
 		}
 
@@ -221,6 +225,8 @@ namespace geom {
 							for (int j = 0; j < lFbxProp.GetSrcObjectCount<fbxsdk::FbxFileTexture>(); ++j)
 							{
 								fbxsdk::FbxFileTexture* lTex = lFbxProp.GetSrcObject<fbxsdk::FbxFileTexture>(j);
+								path texturePath = lTex->GetFileName();
+								material->DiffuseTexture = texturePath.stem().string();
 							}
 							for (int j = 0; j < lFbxProp.GetSrcObjectCount<fbxsdk::FbxLayeredTexture>(); ++j)
 							{
@@ -270,13 +276,14 @@ namespace geom {
 			auto diffuseTextures = GetTextureConnections(fbxMaterial->FindProperty(fbxsdk::FbxSurfaceMaterial::sDiffuse));
 			if (!diffuseTextures.empty())
 				material->DiffuseTexture = diffuseTextures[0];
-			//if (diffuseTextures.size()) material.textures.push_back(diffuseTextures[0]);
-			// Specular Textures
+			//// Specular Textures
 			//vector<string> specularTextures = GetTextureConnections(fbxMaterial->FindProperty(fbxsdk::FbxSurfaceMaterial::sSpecular));
-			//if (specularTextures.size()) material.textures.push_back(specularTextures[0]);
-			// Normal Textures
+			//if (specularTextures.size())
+			//	cout << "Specular";
+			//// Normal Textures
 			//vector<string> normalTextures = GetTextureConnections(fbxMaterial->FindProperty(fbxsdk::FbxSurfaceMaterial::sNormalMap));
-			//if (normalTextures.size()) material.textures.push_back(normalTextures[0]);
+			//if (normalTextures.size()) 
+			//	cout << "normal";
 
 			model.Materials[fbxMaterial->GetName()] = material;
 		}

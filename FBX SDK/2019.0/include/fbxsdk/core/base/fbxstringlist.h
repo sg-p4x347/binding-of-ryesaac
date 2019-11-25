@@ -282,7 +282,7 @@ public :
 	    FbxDelete(mList.RemoveAt(pIndex));
     }
 
-	//! Delete the array.
+	//! Remove the array.
     virtual void Clear()
     {
 		FbxArrayDelete(mList);

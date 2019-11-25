@@ -169,17 +169,21 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ecs\Component.cpp" />
+    <ClCompile Include="geom\CollisionVolume.cpp" />
+    <ClCompile Include="geom\ConvexHull.cpp" />
     <ClCompile Include="geom\Material.cpp" />
     <ClCompile Include="geom\Model.cpp" />
     <ClCompile Include="geom\ModelImporter.cpp" />
     <ClCompile Include="geom\ModelMesh.cpp" />
     <ClCompile Include="geom\ModelMeshVertex.cpp" />
     <ClCompile Include="geom\ModelRepository.cpp" />
+    <ClCompile Include="geom\Sphere.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="math\Utility.cpp" />
     <ClCompile Include="math\Vector2.cpp" />
     <ClCompile Include="math\Vector3.cpp" />
     <ClCompile Include="world\Agent.cpp" />
+    <ClCompile Include="world\Collision.cpp" />
     <ClCompile Include="world\Player.cpp" />
     <ClCompile Include="world\Position.cpp" />
     <ClCompile Include="world\Room.cpp" />
@@ -192,12 +196,16 @@
   <ItemGroup>
     <ClInclude Include="ecs\Component.h" />
     <ClInclude Include="ecs\EntityRepository.h" />
+    <ClInclude Include="geom\CollisionUtil.h" />
+    <ClInclude Include="geom\CollisionVolume.h" />
+    <ClInclude Include="geom\ConvexHull.h" />
     <ClInclude Include="geom\Material.h" />
     <ClInclude Include="geom\Model.h" />
     <ClInclude Include="geom\ModelImporter.h" />
     <ClInclude Include="geom\ModelMesh.h" />
     <ClInclude Include="geom\ModelMeshVertex.h" />
     <ClInclude Include="geom\ModelRepository.h" />
+    <ClInclude Include="geom\Sphere.h" />
     <ClInclude Include="math\Matrix.h" />
     <ClInclude Include="math\Utility.h" />
     <ClInclude Include="math\Vector2.h" />
@@ -206,6 +214,7 @@
     <ClInclude Include="world\Agent.h" />
     <ClInclude Include="world\Collision.h" />
     <ClInclude Include="world\Door.h" />
+    <ClInclude Include="world\GraphNode.h" />
     <ClInclude Include="world\Movement.h" />
     <ClInclude Include="world\Player.h" />
     <ClInclude Include="world\Room.h" />

@@ -63,7 +63,7 @@ public:
     */
     FbxHandle Get(FbxHandle pKey, int* pIndex=NULL);
 
-	//! Delete the array.
+	//! Remove the array.
     void Clear();
 
 	/** Get the item of the given index.
