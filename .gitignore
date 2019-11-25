@@ -1,8 +1,10 @@
 # Visual Studio
 .vs/
-Debug/
-Release/
+/Debug/
+/Release/
 
+# Library files are too big for GitHub :(
+*.lib
 
 # Compiled Object files
 *.slo
