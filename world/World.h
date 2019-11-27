@@ -13,6 +13,9 @@ using ecs::EntityRepository;
 #include "GraphNode.h"
 
 namespace world {
+	struct RoomGenerationUnit {
+		shared_ptr<Door> Doors[4];
+	};
 	class World
 	{
 	public:
@@ -32,6 +35,9 @@ namespace world {
 		bool RoomIntersectionTest(Vector3 position, Vector3 size, shared_ptr<GraphNode<Room>> start);
 		shared_ptr<GraphNode<Room>> GetContainingNode(Vector3 point, shared_ptr<GraphNode<Room>> start, shared_ptr<GraphNode<Room>> exclude);
 
+		//----------------------------------------------------------------
+		// Generation
+		bool Occupied(int x, int z, map<int, map<int, RoomGenerationUnit>>& map);
 		int RollRoomUnits();
 		int RoomUnitsToWidthTiles(int roomUnits);
 		int RoomUnitsToLengthTiles(int roomUnits);

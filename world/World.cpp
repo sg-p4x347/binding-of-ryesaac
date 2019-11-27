@@ -34,6 +34,7 @@ namespace world {
 	
 	const Vector3 World::k_cameraOffset = Vector3(0.f, 8.f, -4.f);
 
+	
 	//const Vector3 World::k_cameraOffset = Vector3(0.f, 1.f, -1.f);
 	World::World()
 	{
@@ -42,6 +43,7 @@ namespace world {
 	void World::Generate()
 	{
 		int roomCount = 0;
+
 
 		// create the starting room
 		auto seed = GenerateRoomNode(Vector3::Zero, RoomUnitsToWidthTiles(2), RoomUnitsToWidthTiles(1), k_roomHeight);
@@ -54,6 +56,8 @@ namespace world {
 			Model(ModelRepository::Get("sphere")),
 			Collision(std::make_shared<Sphere>(Vector3::Zero, 0.25f))
 		);
+
+		map<int, map<int, RoomGenerationUnit>> roomUnits;
 
 		/*perimeter.push(seed);
 		
@@ -333,6 +337,14 @@ namespace world {
 			}
 		}
 		return nullptr;
+	}
+	bool World::Occupied(int x, int z, map<int, map<int, RoomGenerationUnit>>& map)
+	{
+		auto column = map.find(x);
+		if (column != map.end())
+			return column->second.count(z);
+
+		return false;
 	}
 	int World::RollRoomUnits()
 	{
