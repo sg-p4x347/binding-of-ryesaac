@@ -10,7 +10,7 @@ namespace world {
 		public ecs::Component
 	{
 		Collision();
-		Collision(shared_ptr<geom::CollisionVolume> collisionVolume);
+		Collision(shared_ptr<geom::CollisionVolume> collisionVolume, bool handlePenetration = true);
 		struct Contact {
 			ecs::EntityID Collider;
 			Vector3 Point;
@@ -19,5 +19,6 @@ namespace world {
 		};
 		vector<Contact> Contacts;
 		shared_ptr<geom::CollisionVolume> CollisionVolume;
+		bool HandlePenetration;
 	};
 }

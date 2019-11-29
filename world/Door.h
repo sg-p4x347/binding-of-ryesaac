@@ -13,6 +13,7 @@ namespace world {
 		enum class DoorType {
 			Normal
 		};
+		Door(DoorType type = DoorType::Normal, DoorState state = DoorState::Open);
 		DoorState State;
 		DoorType Type;
 	};

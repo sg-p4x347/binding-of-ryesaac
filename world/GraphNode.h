@@ -5,11 +5,16 @@ namespace world {
 	template<typename DataType>
 	struct GraphNode
 	{
+		GraphNode();
 		GraphNode(DataType&& data);
 		GraphNode(DataType& data);
 		DataType Data;
 		vector<shared_ptr<GraphNode>> AdjacentNodes;
 	};
+	template<typename DataType>
+	inline GraphNode<DataType>::GraphNode()
+	{
+	}
 	template<typename DataType>
 	inline GraphNode<DataType>::GraphNode(DataType&& data) : Data(std::move(data))
 	{

@@ -34,10 +34,13 @@ void renderTick(int value);
 void mouseMoveHandler(int cursorX, int cursorY);
 void keyHandler(unsigned char key, int x, int y);
 void keyUpHandler(unsigned char key, int x, int y);
+void specialHandler(int key, int x, int y);
+void specialUpHandler(int key, int x, int y);
 
 World g_world;
 
 int main(int argc, char** argv) {
+	
 	glutInit(&argc, argv);
 	// specify a window size
 	glutInitWindowSize(600, 600);
@@ -51,6 +54,8 @@ int main(int argc, char** argv) {
 	glutPassiveMotionFunc(mouseMoveHandler);
 	glutKeyboardFunc(keyHandler);
 	glutKeyboardUpFunc(keyUpHandler);
+	glutSpecialFunc(specialHandler);
+	glutSpecialUpFunc(specialUpHandler);
 	glutIdleFunc(update);
 	glutDisplayFunc(render);
 
@@ -137,4 +142,14 @@ void keyHandler(unsigned char key, int x, int y)
 void keyUpHandler(unsigned char key, int x, int y)
 {
 	g_world.UpdateKeyState(key, false);
+}
+
+void specialHandler(int key, int x, int y)
+{
+	g_world.UpdateSpecialKeyState(key, true);
+}
+
+void specialUpHandler(int key, int x, int y)
+{
+	g_world.UpdateSpecialKeyState(key, false);
 }
