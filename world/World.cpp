@@ -32,10 +32,10 @@ namespace world {
 	const int World::k_maxBranchingSize = 8;
 	
 	const int World::k_roomCount = 3;
-	//const Vector3 World::k_cameraOffset = Vector3(0.f, 8.f, -4.f);
+	const Vector3 World::k_cameraOffset = Vector3(0.f, 8.f, -4.f);
 
 	
-	const Vector3 World::k_cameraOffset = Vector3(0.f, 1.f, -1.f);
+	//const Vector3 World::k_cameraOffset = Vector3(0.f, 1.f, -1.f);
 	World::World()
 	{
 	}
@@ -52,7 +52,7 @@ namespace world {
 		roomCount++;
 		seed->Data.GetER().CreateEntity(
 			Player(),
-			Agent(Agent::AgentFaction::Bread,8.f,1,0.8f,2.f,1),
+			Agent(Agent::AgentFaction::Bread,8.f,1,0.5f,2.f,1),
 			Movement(),
 			Position(Vector3(0.f,0.f,0.f), Vector3()),
 			Model(ModelRepository::Get("sphere")),

@@ -34,5 +34,6 @@ namespace world {
 		void CollisionUpdate(double elapsed);
 	private:
 		EntityRepository ER;
+		static const float k_collisionCullRange;
 	};
 }

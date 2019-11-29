@@ -11,6 +11,7 @@ using geom::ModelRepository;
 #include <GL/glut.h>
 
 namespace world {
+	const float Room::k_collisionCullRange = 1.5f;
 	Room::Room()
 	{
 	}
@@ -92,10 +93,10 @@ namespace world {
 					projectileModel = ModelRepository::Get("butter");
 					break;
 				}
-				Agent projectile = Agent(agent.Faction, 2.f, 0, 0.f, 0.f, 1);
+				Agent projectile = Agent(agent.Faction, 16.f, 0, 0.f, 0.f, 1);
 				projectile.Heading = Vector3(std::cos(position.Rot.Y), 0.f, std::sin(position.Rot.Y));
 				ER.CreateEntity(
-					Position(position.Pos, position.Rot),
+					Position(position.Pos + projectile.Heading, position.Rot),
 					projectile,
 					Movement(),
 					Collision(std::make_shared<geom::Sphere>(Vector3::Zero, 0.25), false),
@@ -128,8 +129,14 @@ namespace world {
 				}
 			}
 			else {
+				if (!collision.Contacts.empty()) {
+					dead.insert(agent.ID);
+				}
 			}
 		}
+		// Remove all dead agents
+		for (auto& id : dead)
+			ER.Remove(id);
 	}
 
 	void Room::AiUpdate(double elapsed)
@@ -156,28 +163,27 @@ namespace world {
 			for (auto& staticCollider : ER.GetIterator<Collision, Position>()) {
 				auto& staticCollision = staticCollider.Get<Collision>();
 				auto& staticPosition = staticCollider.Get<Position>();
-				staticCollision.Contacts.clear();
-				auto staticCollisionVolume = staticCollision.CollisionVolume->Transform(staticPosition.GetTransform());
-				// Use GJK to test if an intersection exists
-				geom::GjkIntersection intersection;
-				if (geom::GJK(*dynamicCollisionVolume, *staticCollisionVolume, intersection)) {
-					// Use EPA to get the contact details
-					Collision::Contact contact;
-					if (geom::EPA(*dynamicCollisionVolume, *staticCollisionVolume, intersection, contact)) {
-						// Immediately correct the position in the X-Z plane
-						if (dynamicCollision.HandlePenetration) {
-							dynamicPosition.Pos.X += contact.Normal.X * contact.PenetrationDepth;
-							dynamicPosition.Pos.Z += contact.Normal.Z * contact.PenetrationDepth;
-							// Update collision volume
-							dynamicCollisionVolume = dynamicCollision.CollisionVolume->Transform(dynamicPosition.GetTransform());
-						}
-						// Register contacts on both entities
-						contact.Collider = staticCollision.ID;
-						dynamicCollision.Contacts.push_back(contact);
+				if (staticCollision.ID != dynamicCollision.ID && (staticPosition.Pos - dynamicPosition.Pos).LengthSquared() < k_collisionCullRange * k_collisionCullRange) {
+					staticCollision.Contacts.clear();
+					auto staticCollisionVolume = staticCollision.CollisionVolume->Transform(staticPosition.GetTransform());
+					// Use GJK to test if an intersection exists
+					geom::GjkIntersection intersection;
+					if (geom::GJK(*dynamicCollisionVolume, *staticCollisionVolume, intersection)) {
+						// Use EPA to get the contact details
+						Collision::Contact contact;
+						if (geom::EPA(*dynamicCollisionVolume, *staticCollisionVolume, intersection, contact)) {
+							// Immediately correct the position in the X-Z plane
+							if (dynamicCollision.HandlePenetration) {
+								dynamicPosition.Pos.X += contact.Normal.X * contact.PenetrationDepth;
+								dynamicPosition.Pos.Z += contact.Normal.Z * contact.PenetrationDepth;
+								// Update collision volume
+								dynamicCollisionVolume = dynamicCollision.CollisionVolume->Transform(dynamicPosition.GetTransform());
+							}
+							// Register contacts
+							contact.Collider = staticCollision.ID;
+							dynamicCollision.Contacts.push_back(contact);
 
-						contact.Collider = dynamicCollision.ID;
-						contact.Normal = -contact.Normal;
-						staticCollision.Contacts.push_back(contact);
+						}
 					}
 				}
 			}

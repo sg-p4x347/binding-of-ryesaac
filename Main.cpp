@@ -92,7 +92,7 @@ void initialize() {
 	// Set the viewport to cover the new window
 	glViewport(-2, 2, -2, 2);
 
-	auto texture = TextureRepository::Get("test");
+	auto texture = TextureRepository::Get("bricks");
 	if (texture) {
 		glEnable(GL_TEXTURE_2D);
 		// Create one OpenGL texture

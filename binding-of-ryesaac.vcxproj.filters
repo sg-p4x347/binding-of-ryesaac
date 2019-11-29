@@ -90,6 +90,7 @@
       <Filter>Math</Filter>
     </ClCompile>
     <ClCompile Include="world\Door.cpp" />
+    <ClCompile Include="Rectangle.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -183,6 +184,7 @@
     <ClInclude Include="math\IntVec2.h">
       <Filter>Math</Filter>
     </ClInclude>
+    <ClInclude Include="Rectangle.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
