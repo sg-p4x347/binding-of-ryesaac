@@ -26,14 +26,15 @@ using math::PI;
 
 namespace world {
 	const float World::k_tileSize = 1.f;
-	const int World::k_roomWidth = 13;
-	const int World::k_roomLength = 7;
-	const int World::k_roomHeight = 1;
+	const IntVec2 World::k_roomUnitSize = IntVec2(14,8);
 	const int World::k_maxRoomUnits = 2;
 	const int World::k_minRoomUnits = 1;
+	const int World::k_maxBranchingSize = 8;
 	
+	const int World::k_roomCount = 3;
 	const Vector3 World::k_cameraOffset = Vector3(0.f, 8.f, -4.f);
 
+	
 	//const Vector3 World::k_cameraOffset = Vector3(0.f, 1.f, -1.f);
 	World::World()
 	{
@@ -41,158 +42,96 @@ namespace world {
 
 	void World::Generate()
 	{
+		// Seed the RNG with the current time for different results on every run
+		srand(time(NULL));
 		int roomCount = 0;
 
+
 		// create the starting room
-		auto seed = GenerateRoomNode(Vector3::Zero, RoomUnitsToWidthTiles(2), RoomUnitsToWidthTiles(1), k_roomHeight);
+		auto seed = GenerateRoomNode();
 		roomCount++;
 		seed->Data.GetER().CreateEntity(
 			Player(),
-			Agent(8.f, 1.f),
+			Agent(Agent::AgentFaction::Bread,8.f,1,0.5f,2.f,1),
 			Movement(),
-			Position(Vector3(2.f, 0.f, 2.f), Vector3()),
+			Position(Vector3(0.f,0.f,0.f), Vector3()),
 			Model(ModelRepository::Get("sphere")),
 			Collision(std::make_shared<Sphere>(Vector3::Zero, 0.25f))
 		);
 
-		/*perimeter.push(seed);
+		map<IntVec2, RoomGenerationUnit, IntVec2Comparer> roomUnits;
+
 		
-		while (roomCount < k_roomCount) {
+		queue<vector<IntVec2>> rooms;
+		queue<shared_ptr<GraphNode<Room>>> roomNodes;
+		vector<IntVec2> seedRoom = CreateRoomUnitSet(IntVec2::Zero, IntVec2(0, 1));
+		rooms.push(seedRoom);
+		roomNodes.push(seed);
 
-			
+		for (auto& newUnit : seedRoom) {
+			roomUnits[newUnit] = RoomGenerationUnit();
+		}
+		while (!rooms.empty()) {
 
+			vector<IntVec2> hub = rooms.front();
+			auto roomNode = roomNodes.front();
+			int maxDoorCount = RollDoorCount(min(k_maxBranchingSize, k_roomCount - roomCount));
+			int doorCount = 0;
+			for (auto& unit : hub) {
+				if (doorCount >= maxDoorCount)
+					break;
+				for (int i = 0; i < 4 && doorCount < maxDoorCount; i++) {
+					double x = std::cos((PI / 2.0) * i);
+					double y = std::sin((PI / 2.0) * i);
+					IntVec2 direction(round(x), round(y));
+					IntVec2 adjacent = unit + direction;
+					if (!Occupied(adjacent, roomUnits)) {
+						vector<IntVec2> adjacentRoom = CreateRoomUnitSet(adjacent, direction);
+						if (!Occupied(adjacentRoom, roomUnits)) {
+							doorCount++;
+							roomCount++;
+							// add the room to the queue to become a new hub
+							math::Shuffle(adjacentRoom);
+							rooms.push(adjacentRoom);
+							
+							// Create a room node
+							auto adjacentRoomNode = GenerateRoomNode();
+							adjacentRoomNode->AdjacentNodes.push_back(roomNode);
+							roomNode->AdjacentNodes.push_back(adjacentRoomNode);
+							roomNodes.push(adjacentRoomNode);
 
-			int width = RoomUnitsToWidthTiles(RollRoomUnits());
-			int height = RoomUnitsToWidthTiles(RollRoomUnits());
-			GenerateRoomNode(Vector3::Zero, RoomUnitsToWidthTiles(2), RoomUnitsToWidthTiles(1), k_roomHeight);
+							// add the room units
+							for (auto& newUnit : adjacentRoom) {
+								roomUnits[newUnit] = RoomGenerationUnit();
+							}
+							roomUnits[adjacent].Doors[(i + 2) % 4] = std::make_shared<Door>();
+							roomUnits[unit].Doors[i] = std::make_shared<Door>();
+
+						}
+					}
+				}
+			}
+			// this hub is done
+			rooms.pop();
+			roomNodes.pop();
+			map<IntVec2, RoomGenerationUnit, IntVec2Comparer> roomMap;
+			for (auto& unitPos : hub) {
+				roomMap[unitPos] = roomUnits[unitPos];
+				// add this nodes to the full map
+				m_roomMap[unitPos] = roomNode;
+			}
+
+			// bake each unit into entities
+			BakeRoomUnits(roomMap, roomNode->Data);
 		}
 		
-		*/
+		
 		m_currentNode = seed;
 	}
 
-	shared_ptr<GraphNode<Room>> World::GenerateRoomNode(Vector3 worldPosition, int width, int length, int height)
+	shared_ptr<GraphNode<Room>> World::GenerateRoomNode()
 	{
-		// Add one to dimensions to be inclusive
-		width++;
-		length++;
-		height++;
-		shared_ptr<GraphNode<Room>> node = std::make_shared<GraphNode<Room>>(Room(worldPosition, Vector3(width * k_tileSize, height * k_tileSize, length * k_tileSize)));
-		Room& room = node->Data;
-		auto wallModel = ModelRepository::Get("wall");
-		/*
-				 Z
-		  inside ^
-			_____|
-		   |     |
-		X <------*
-
-		*/
-		auto cornerModel = ModelRepository::Get("corner");
-		/*
-				 Z
-		inside __^
-			__|  |
-		   |     |
-		X <------*
-
-		*/
-		auto floorModel = ModelRepository::Get("floor");
-
-		Vector3 xWall = Vector3::UnitX * width * k_tileSize;
-		Vector3 zWall = Vector3::UnitZ * length * k_tileSize;
-		vector<Vector3> waypoints{
-			worldPosition,
-			worldPosition + xWall,
-			worldPosition + xWall + zWall,
-			worldPosition + zWall
-		};
-		vector<Position> possibleDoors;
-		for (int i = 0; i < waypoints.size(); i++) {
-			Vector3& waypoint = waypoints[i];
-			Vector3& nextWaypoint = waypoints[(i + 1) % waypoints.size()];
-
-			Vector3 wall = nextWaypoint - waypoint;
-			Vector3 wallDir = wall.Normalized();
-
-			Vector3 rotation = Vector3(0.f, -std::atan2f(wallDir.Z, wallDir.X), 0.f);
-
-			// Add corner at this waypoint
-			room.GetER().CreateEntity(
-				Position(waypoint, rotation),
-				Model(cornerModel)
-			);
-			// Add wall tiles from this waypoint to the next
-			int wallLength = wall.Length();
-			for (int tileIndex = 1; tileIndex < wallLength; tileIndex++) {
-
-				bool doorway =
-					xWall.Dot(wallDir) != 0.f && (tileIndex % k_roomWidth - 1 == k_roomWidth / 2)
-					||
-					zWall.Dot(wallDir) != 0.f && (tileIndex % k_roomLength - 1 == k_roomLength / 2);
-				if (!doorway) {
-					room.GetER().CreateEntity(
-						Position(waypoint + wallDir * tileIndex, rotation),
-						Model(wallModel),
-						Collision(geom::CreateBox(Vector3::Zero, Vector3(1.f, 1.f, 1.f)))
-					);
-				}
-				else {
-					possibleDoors.push_back(Position(waypoint + wallDir * tileIndex, rotation));
-				}
-			}
-		}
-		// Add floors
-		for (int x = 0; x <= width; x++) {
-			for (int z = 0; z <= length; z++) {
-				room.GetER().CreateEntity(
-					Position(worldPosition - Vector3::UnitY + Vector3::UnitX * x * k_tileSize + Vector3::UnitZ * z * k_tileSize, Vector3::Zero),
-					Model(floorModel)
-				);
-			}
-		}
-		
-		int desiredDoorCount = math::RandWithin(1, 3);
-		int doorCount = 0;
-		vector<Position> missingDoors;
-		
-		// Remove door slots that are blocked by an existing room
-		for (int i = 0; i < possibleDoors.size(); i++)
-			if (GetContainingNode(possibleDoors[i].Pos, node,node)) {
-				missingDoors.push_back(possibleDoors[i]);
-				possibleDoors.erase(possibleDoors.begin() + i);
-				i--;
-			}
-
-		// Keep removing a random possible door slot until we have reached the desired count
-		while (!possibleDoors.empty() && possibleDoors.size() > desiredDoorCount) {
-			int doorIndex = math::RandWithin(0, possibleDoors.size() - 1);
-			missingDoors.push_back(possibleDoors[doorIndex]);
-			possibleDoors.erase(possibleDoors.begin() + doorIndex);
-		}
-
-		// Create doors
-		for (auto& possibleDoor : possibleDoors) {
-
-		}
-		// Fill in missing door holes
-		for (auto& missingDoor : missingDoors) {
-			room.GetER().CreateEntity(
-				missingDoor,
-				Model(wallModel),
-				Collision(geom::CreateBox(Vector3::Zero, Vector3(1.f, 1.f, 1.f)))
-			);
-		}
-
-		/*for (auto& entity : room.GetER().GetIterator<Door, Position>()) {
-			auto& position = entity.Get<Position>();
-			if (GetContainingNode(position.Pos, node)) {
-				missingDoors
-			}
-		}*/
-		
-
-		return node;
+		return std::make_shared<GraphNode<Room>>();
 	}
 
 	void World::Render()
@@ -241,9 +180,15 @@ namespace world {
 
 	void World::PlayerUpdate(double elapsed)
 	{
-		for (auto& entity : m_currentNode->Data.GetER().GetIterator<Player, Agent>()) {
+		Vector3 playerPosition;
+		ecs::EntityID playerID;
+		for (auto& entity : m_currentNode->Data.GetER().GetIterator<Player, Agent, Position>()) {
 			auto & player = entity.Get<Player>();
 			auto& agent = entity.Get<Agent>();
+			auto& position = entity.Get<Position>();
+
+			playerID = player.ID;
+			playerPosition = position.Pos;
 
 			agent.Heading = Vector3();
 			if (m_keys['w'])
@@ -254,6 +199,37 @@ namespace world {
 				agent.Heading.Z -= 1.f;
 			if (m_keys['d'])
 				agent.Heading.X -= 1.f;
+
+			agent.Heading.Normalize();
+
+			Vector3 facing;
+			if (m_specialKeys[GLUT_KEY_UP])
+				facing.Z += 1.f;
+			if (m_specialKeys[GLUT_KEY_LEFT])
+				facing.X += 1.f;
+			if (m_specialKeys[GLUT_KEY_DOWN])
+				facing.Z -= 1.f;
+			if (m_specialKeys[GLUT_KEY_RIGHT])
+				facing.X -= 1.f;
+
+			if (facing.LengthSquared() > 0.f) {
+				facing.Normalize();
+				// Rotate the player
+				position.Rot.Y = std::atan2(facing.Z, facing.X);
+				// An arrow key is pressed, start attacking
+				agent.Attack = true;
+			}
+			else {
+				// The arrow keys are not being pressed, stop attacking
+				agent.Attack = false;
+			}
+		}
+		auto oldNode = m_currentNode;
+		UpdateCurrentNode(playerPosition);
+		if (oldNode != m_currentNode) {
+			// Remove the player from this node and place them in the new current node
+			EntityRepository::Copy(playerID, oldNode->Data.GetER(), m_currentNode->Data.GetER());
+			oldNode->Data.GetER().Remove(playerID);
 		}
 	}
 
@@ -268,7 +244,6 @@ namespace world {
 		QueryPerformanceCounter(&current);
 		double elapsed = (current.QuadPart - m_lastUpdate.QuadPart) / frequency;
 		m_lastUpdate = current;
-
 		// Perform world system updates
 		PlayerUpdate(elapsed);
 
@@ -285,65 +260,179 @@ namespace world {
 		m_keys[key] = state;
 	}
 
+	void World::UpdateSpecialKeyState(int key, bool state)
+	{
+		m_specialKeys[key] = state;
+	}
+
 	void World::UpdateMousePosition(Vector2 position)
 	{
 
 	}
-	bool World::RoomIntersectionTest(Vector3 position, Vector3 size, shared_ptr<GraphNode<Room>> start)
+	void World::UpdateCurrentNode(Vector3 focus)
 	{
-		if (start) {
-			set<shared_ptr<GraphNode<Room>>> checked;
-			queue<shared_ptr<GraphNode<Room>>> unchecked;
-			unchecked.push(start);
-			while (!unchecked.empty()) {
-				shared_ptr<GraphNode<Room>> node = unchecked.front();
-				Room& room = node->Data;
-				unchecked.pop();
-				if (math::IntersectionTest(position.X, position.X + size.X, room.GetPosition().X, room.GetPosition().X + room.GetSize().X)
-					&& math::IntersectionTest(position.Y, position.Y + size.Y, room.GetPosition().Y, room.GetPosition().Y + room.GetSize().Y)
-					&& math::IntersectionTest(position.Z, position.Z + size.Z, room.GetPosition().Z, room.GetPosition().Z + room.GetSize().Z)) {
-					return true;
-				}
-				checked.insert(node);
-				// add unchecked adjacent nodes to the queue
-				for (auto& adjacentNode : node->AdjacentNodes)
-					if (!checked.count(adjacentNode))
-						unchecked.push(adjacentNode);
+		IntVec2 unitFocus = GetUnitPosition(focus);
+		auto it = m_roomMap.find(unitFocus);
+		if (it != m_roomMap.end()) {
+			if (it->second != m_currentNode) {
+				m_currentNode = it->second;
 			}
 		}
 	}
-	shared_ptr<GraphNode<Room>> World::GetContainingNode(Vector3 point, shared_ptr<GraphNode<Room>> start, shared_ptr<GraphNode<Room>> exclude)
+	IntVec2 World::GetUnitPosition(Vector3 worldPosition)
 	{
-		if (start) {
-			set<shared_ptr<GraphNode<Room>>> checked;
-			queue<shared_ptr<GraphNode<Room>>> unchecked;
-			unchecked.push(start);
-			while (!unchecked.empty()) {
-				shared_ptr<GraphNode<Room>> node = unchecked.front();
-				Room& room = node->Data;
-				unchecked.pop();
-				if (node != exclude && room.Contains(point)) {
-					return node;
+		return IntVec2(round(worldPosition.X / (k_roomUnitSize.X * k_tileSize)), round(worldPosition.Z / (k_roomUnitSize.Y * k_tileSize)));
+	}
+
+	void World::UpdateDoorState(Vector3 position, Door door)
+	{
+		for (auto& adjacentNode : m_currentNode->AdjacentNodes) {
+			for (auto& entity : adjacentNode->Data.GetER().GetIterator<Door, Position>()) {
+				auto& adjacentDoor = entity.Get<Door>();
+				auto& adjacentPosition = entity.Get<Position>();
+				if (adjacentPosition.Pos == position) {
+					adjacentDoor.State = door.State;
 				}
-				checked.insert(node);
-				// add unchecked adjacent nodes to the queue
-				for (auto& adjacentNode : node->AdjacentNodes)
-					if (!checked.count(adjacentNode))
-						unchecked.push(adjacentNode);
 			}
 		}
-		return nullptr;
+	}
+	
+	bool World::Occupied(IntVec2 position, map<IntVec2, RoomGenerationUnit, IntVec2Comparer>& map)
+	{
+		return map.count(position);
+	}
+	bool World::Occupied(vector<IntVec2> positions, map<IntVec2, RoomGenerationUnit, IntVec2Comparer>& map)
+	{
+		for (auto& position : positions) {
+			if (Occupied(position, map))
+				return true;
+		}
+		return false;
+	}
+	vector<IntVec2> World::CreateRoomUnitSet(IntVec2 entrance, IntVec2 direction)
+	{
+		IntVec2 tangent = IntVec2(-direction.Y, direction.X);
+		int width = RollRoomUnits();
+		int length = RollRoomUnits();
+
+		IntVec2 start = entrance + IntVec2(
+			min(tangent.X * width / 2, -tangent.X * width / 2),
+			min(tangent.Y * length / 2, -tangent.Y * length / 2)
+			);
+		vector<IntVec2> room;
+		for (int x = start.X; x < start.X + width; x++) {
+			for (int y = start.Y; y < start.Y + length; y++) {
+				room.push_back(IntVec2(x, y));
+			}
+		}
+		return room;
+	}
+	void World::BakeRoomUnits(map<IntVec2, RoomGenerationUnit, IntVec2Comparer>& roomUnits, Room& room)
+	{
+		auto doorwayModel = ModelRepository::Get("doorway");
+		auto wallModel = ModelRepository::Get("wall");
+		/*
+				 Z
+		  inside ^
+			_____|
+		   |     |
+		X <------*
+
+		*/
+		auto cornerModel = ModelRepository::Get("corner");
+		/*
+				 Z
+		inside   ^
+			   __|
+		      |  |
+		X <------*
+
+		*/
+		auto floorModel = ModelRepository::Get("floor");
+		for (auto& unit : roomUnits) {
+			Vector3 unitCenter = Vector3(unit.first.X * k_roomUnitSize.X * k_tileSize,0.f,unit.first.Y * k_roomUnitSize.Y * k_tileSize);
+			Vector3 unitSize = Vector3(k_roomUnitSize.X * k_tileSize, 1.f, k_roomUnitSize.Y * k_tileSize);
+			for (int i = 0; i < 4; i++) {
+				double rotation = (PI / 2.0) * i;
+				double x = std::cos(rotation);
+				double y = std::sin(rotation);
+
+				IntVec2 unitDir(round(x), round(y));
+				IntVec2 unitTangent(unitDir.Y, -unitDir.X);
+				IntVec2 adjacent = unit.first + unitDir;
+
+				if (!roomUnits.count(adjacent)) {
+					// This is a wall
+					
+					Vector3 wallNormal = Vector3(unitDir.X, 0.f, unitDir.Y);
+					Vector3 wallDir = -Vector3(unitTangent.X, 0.f, unitTangent.Y);
+
+					int wallLength = abs(unitSize.Dot(wallDir));
+					Vector3 wallStart = unitCenter + wallNormal * abs(unitSize.Dot(wallNormal) / 2.0) - wallDir * wallLength / 2;
+					for (int tileIndex = 0; tileIndex < wallLength; tileIndex++) {
+						if (tileIndex == 0 && !roomUnits.count(unit.first + unitTangent)) {
+							room.GetER().CreateEntity(
+								Position(wallStart + wallDir * tileIndex, Vector3(0.f, -rotation - PI / 2.0, 0.f)),
+								Model(cornerModel),
+								Collision(geom::CreateBox(Vector3::Zero, Vector3(1.f, 1.f, 1.f)))
+							);
+						}
+						else {
+							bool doorway = unit.second.Doors[i] && tileIndex == wallLength / 2;
+							if (!doorway) {
+								room.GetER().CreateEntity(
+									Position(wallStart + wallDir * tileIndex, Vector3(0.f, -rotation - PI / 2.0, 0.f)),
+									Model(wallModel),
+									Collision(geom::CreateBox(Vector3::Zero, Vector3(1.f, 1.f, 1.f)))
+								);
+							}
+							else {
+								Door door = *unit.second.Doors[i];
+								// Doorway
+								room.GetER().CreateEntity(
+									Position(wallStart + wallDir * tileIndex, Vector3(0.f, rotation, 0.f)),
+									Model(ModelRepository::Get("doorway_" + std::to_string((int)door.Type)))
+								);
+								// Door
+								Position position = Position(wallStart + wallDir * tileIndex, Vector3(0.f, rotation, 0.f));
+								Model model = Model(ModelRepository::Get("door_" + std::to_string((int)door.State)));
+								if (door.State == Door::DoorState::Open) {
+									room.GetER().CreateEntity(
+										door,
+										position,
+										model
+									);
+								}
+								else {
+									room.GetER().CreateEntity(
+										door,
+										position,
+										model,
+										Collision(geom::CreateBox(Vector3::Zero, Vector3(1.f, 1.f, 1.f)))
+									);
+								}
+							}
+						}
+					}
+				}
+			}
+			// Add floors
+			for (int x = unitCenter.X - unitSize.X / 2.f; x < unitCenter.X + unitSize.X / 2.f; x++) {
+				for (int z = unitCenter.Z - unitSize.Z / 2.f; z < unitCenter.Z + unitSize.Z / 2.f; z++) {
+					room.GetER().CreateEntity(
+						Position(Vector3(x, -k_tileSize, z), Vector3::Zero),
+						Model(floorModel)
+					);
+				}
+			}
+		}
+	}
+	int World::RollDoorCount(int max)
+	{
+		return math::RandWithin(min(1,max), max);
 	}
 	int World::RollRoomUnits()
 	{
 		return math::RandWithin(k_minRoomUnits, k_maxRoomUnits);
-	}
-	int World::RoomUnitsToWidthTiles(int roomUnits)
-	{
-		return roomUnits * (k_roomWidth - 1) + 1;
-	}
-	int World::RoomUnitsToLengthTiles(int roomUnits)
-	{
-		return roomUnits * (k_roomLength - 1) + 1;
 	}
 }

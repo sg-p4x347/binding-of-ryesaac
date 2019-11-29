@@ -23,7 +23,8 @@ namespace ecs {
 		void Remove(EntityID id);
 		template<typename First, typename Second, typename ... Rest>
 		void Remove(EntityID id);
-
+		static void Copy(EntityID id, EntityRepository<CompTypes...>& source, EntityRepository<CompTypes...>& destination);
+		
 		template<typename ... QueryTypes>
 		EntityIterator<EntityRepository<CompTypes...>, QueryTypes...> GetIterator();
 	private:
@@ -33,6 +34,12 @@ namespace ecs {
 		void PushComponent(EntityID id, Comp&& component);
 		template<typename First, typename Second, typename ... Rest>
 		void PushComponent(EntityID id, First&& first, Second&& second, Rest&& ... rest);
+		//----------------------------------------------------------------
+		// Copy components from one repository to another
+		template<typename CompType>
+		static void Copy(EntityID id, EntityRepository<CompTypes...>& source, EntityRepository<CompTypes...>& destination);
+		template<typename First, typename Second, typename ... Rest>
+		static void Copy(EntityID id, EntityRepository<CompTypes...>& source, EntityRepository<CompTypes...>& destination);
 	private:
 		tuple<vector<CompTypes>...> m_components;
 		EntityID m_nextId;
@@ -47,6 +54,31 @@ namespace ecs {
 	inline void EntityRepository<CompTypes...>::Remove(EntityID id)
 	{
 		Remove<CompTypes...>(id);
+	}
+	template<typename ...CompTypes>
+	inline void EntityRepository<CompTypes...>::Copy(EntityID id, EntityRepository<CompTypes...>& source, EntityRepository<CompTypes...>& destination)
+	{
+		Copy<CompTypes...>(id, source, destination);
+		destination.m_nextId++;
+	}
+	template<typename ...CompTypes>
+	template<typename CompType>
+	void EntityRepository<CompTypes...>::Copy(EntityID id, EntityRepository<CompTypes...>& source, EntityRepository<CompTypes...>& destination) {
+		auto& sourceVector = std::get<vector<CompType>>(source.m_components);
+		for (int i = 0; i < sourceVector.size(); i++) {
+			if (sourceVector[i].ID == id) {
+				destination.PushComponent(destination.m_nextId,CompType(sourceVector[i]));
+			}
+			else if (sourceVector[i].ID > id) {
+				return;
+			}
+		}
+	}
+	template<typename ...CompTypes>
+	template<typename First, typename Second, typename ... Rest>
+	void EntityRepository<CompTypes...>::Copy(EntityID id, EntityRepository<CompTypes...>& source, EntityRepository<CompTypes...>& destination) {
+		Copy<First>(id, source, destination);
+		Copy<Second, Rest...>(id, source, destination);
 	}
 	template<typename ...CompTypes>
 	template<typename CompType>
