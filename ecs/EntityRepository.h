@@ -142,7 +142,7 @@ namespace ecs {
 	public:
 		EntityIterator(RepoType& repository);
 		template<typename CompType>
-		CompType& Get() const;
+		CompType& GetBitmap() const;
 		const EntityIterator& operator*() const;
 		bool operator==(const EntityIterator<RepoType, QueryTypes...>& other) const;
 		bool operator!=(const EntityIterator<RepoType, QueryTypes...>& other) const;
@@ -237,7 +237,7 @@ namespace ecs {
 
 	template<typename RepoType, typename ...QueryTypes>
 	template<typename CompType>
-	inline CompType& EntityIterator<RepoType, QueryTypes...>::Get() const
+	inline CompType& EntityIterator<RepoType, QueryTypes...>::GetBitmap() const
 	{
 		return *std::get<pair<CompType*, int32_t>>(m_componentIndices).first;
 	}

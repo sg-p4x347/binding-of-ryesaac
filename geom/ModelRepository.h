@@ -8,7 +8,7 @@ namespace geom {
 	{
 	public:
 		static ModelRepository& GetInstance();
-		static shared_ptr<Model> Get(string modelName);
+		static shared_ptr<Model> GetBitmap(string modelName);
 	private:
 		ModelRepository();
 	private:

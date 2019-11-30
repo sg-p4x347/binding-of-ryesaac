@@ -31,7 +31,7 @@ namespace world {
 	const int World::k_minRoomUnits = 1;
 	const int World::k_maxBranchingSize = 8;
 	
-	const int World::k_roomCount = 3;
+	const int World::k_roomCount = 20;
 	const Vector3 World::k_cameraOffset = Vector3(0.f, 8.f, -4.f);
 
 	
@@ -55,7 +55,7 @@ namespace world {
 			Agent(Agent::AgentFaction::Bread,8.f,1,0.5f,2.f,1),
 			Movement(),
 			Position(Vector3(0.f,0.f,0.f), Vector3()),
-			Model(ModelRepository::Get("sphere")),
+			Model(ModelRepository::GetBitmap("sphere")),
 			Collision(std::make_shared<Sphere>(Vector3::Zero, 0.25f))
 		);
 
@@ -146,10 +146,10 @@ namespace world {
 		
 		gluPerspective(70.0, (double)windowWidth / windowHeight, 0.01, 1000.0);
 		
-		// Get the player's position
+		// GetBitmap the player's position
 		for (auto& entity : m_currentNode->Data.GetER().GetIterator<Player, Position>()) {
-			auto& player = entity.Get<Player>();
-			auto& position = entity.Get<Position>();
+			auto& player = entity.GetBitmap<Player>();
+			auto& position = entity.GetBitmap<Position>();
 			Vector3 camera = position.Pos + k_cameraOffset;
 			Vector3 lookDir = position.Pos - camera;
 			gluLookAt(
@@ -183,9 +183,9 @@ namespace world {
 		Vector3 playerPosition;
 		ecs::EntityID playerID;
 		for (auto& entity : m_currentNode->Data.GetER().GetIterator<Player, Agent, Position>()) {
-			auto & player = entity.Get<Player>();
-			auto& agent = entity.Get<Agent>();
-			auto& position = entity.Get<Position>();
+			auto & player = entity.GetBitmap<Player>();
+			auto& agent = entity.GetBitmap<Agent>();
+			auto& position = entity.GetBitmap<Position>();
 
 			playerID = player.ID;
 			playerPosition = position.Pos;
@@ -288,8 +288,8 @@ namespace world {
 	{
 		for (auto& adjacentNode : m_currentNode->AdjacentNodes) {
 			for (auto& entity : adjacentNode->Data.GetER().GetIterator<Door, Position>()) {
-				auto& adjacentDoor = entity.Get<Door>();
-				auto& adjacentPosition = entity.Get<Position>();
+				auto& adjacentDoor = entity.GetBitmap<Door>();
+				auto& adjacentPosition = entity.GetBitmap<Position>();
 				if (adjacentPosition.Pos == position) {
 					adjacentDoor.State = door.State;
 				}
@@ -329,8 +329,8 @@ namespace world {
 	}
 	void World::BakeRoomUnits(map<IntVec2, RoomGenerationUnit, IntVec2Comparer>& roomUnits, Room& room)
 	{
-		auto doorwayModel = ModelRepository::Get("doorway");
-		auto wallModel = ModelRepository::Get("wall");
+		auto doorwayModel = ModelRepository::GetBitmap("doorway");
+		auto wallModel = ModelRepository::GetBitmap("wall");
 		/*
 				 Z
 		  inside ^
@@ -339,7 +339,7 @@ namespace world {
 		X <------*
 
 		*/
-		auto cornerModel = ModelRepository::Get("corner");
+		auto cornerModel = ModelRepository::GetBitmap("corner");
 		/*
 				 Z
 		inside   ^
@@ -348,7 +348,7 @@ namespace world {
 		X <------*
 
 		*/
-		auto floorModel = ModelRepository::Get("floor");
+		auto floorModel = ModelRepository::GetBitmap("floor");
 		for (auto& unit : roomUnits) {
 			Vector3 unitCenter = Vector3(unit.first.X * k_roomUnitSize.X * k_tileSize,0.f,unit.first.Y * k_roomUnitSize.Y * k_tileSize);
 			Vector3 unitSize = Vector3(k_roomUnitSize.X * k_tileSize, 1.f, k_roomUnitSize.Y * k_tileSize);
@@ -391,11 +391,11 @@ namespace world {
 								// Doorway
 								room.GetER().CreateEntity(
 									Position(wallStart + wallDir * tileIndex, Vector3(0.f, rotation, 0.f)),
-									Model(ModelRepository::Get("doorway_" + std::to_string((int)door.Type)))
+									Model(ModelRepository::GetBitmap("doorway_" + std::to_string((int)door.Type)))
 								);
 								// Door
 								Position position = Position(wallStart + wallDir * tileIndex, Vector3(0.f, rotation, 0.f));
-								Model model = Model(ModelRepository::Get("door_" + std::to_string((int)door.State)));
+								Model model = Model(ModelRepository::GetBitmap("door_" + std::to_string((int)door.State)));
 								if (door.State == Door::DoorState::Open) {
 									room.GetER().CreateEntity(
 										door,

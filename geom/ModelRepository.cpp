@@ -12,7 +12,7 @@ namespace geom {
 		return instance;
 	}
 
-	shared_ptr<Model> ModelRepository::Get(string modelName)
+	shared_ptr<Model> ModelRepository::GetBitmap(string modelName)
 	{
 		return GetInstance().m_models[modelName];
 	}
