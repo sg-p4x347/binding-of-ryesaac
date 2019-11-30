@@ -352,6 +352,12 @@ namespace world {
 		for (auto& unit : roomUnits) {
 			Vector3 unitCenter = Vector3(unit.first.X * k_roomUnitSize.X * k_tileSize,0.f,unit.first.Y * k_roomUnitSize.Y * k_tileSize);
 			Vector3 unitSize = Vector3(k_roomUnitSize.X * k_tileSize, 1.f, k_roomUnitSize.Y * k_tileSize);
+			// floor
+			room.GetER().CreateEntity(
+				Position(unitCenter, Vector3::Zero),
+				Model(floorModel)
+			);
+
 			for (int i = 0; i < 4; i++) {
 				double rotation = (PI / 2.0) * i;
 				double x = std::cos(rotation);
@@ -371,6 +377,7 @@ namespace world {
 					Vector3 wallStart = unitCenter + wallNormal * abs(unitSize.Dot(wallNormal) / 2.0) - wallDir * wallLength / 2;
 					for (int tileIndex = 0; tileIndex < wallLength; tileIndex++) {
 						if (tileIndex == 0 && !roomUnits.count(unit.first + unitTangent)) {
+							// Corner
 							room.GetER().CreateEntity(
 								Position(wallStart + wallDir * tileIndex, Vector3(0.f, -rotation - PI / 2.0, 0.f)),
 								Model(cornerModel),
@@ -388,13 +395,13 @@ namespace world {
 							}
 							else {
 								Door door = *unit.second.Doors[i];
+								Position position = Position(wallStart + wallDir * tileIndex, Vector3(0.f, -rotation - PI / 2.0, 0.f));
 								// Doorway
 								room.GetER().CreateEntity(
-									Position(wallStart + wallDir * tileIndex, Vector3(0.f, rotation, 0.f)),
+									position,
 									Model(ModelRepository::GetBitmap("doorway_" + std::to_string((int)door.Type)))
 								);
 								// Door
-								Position position = Position(wallStart + wallDir * tileIndex, Vector3(0.f, rotation, 0.f));
 								Model model = Model(ModelRepository::GetBitmap("door_" + std::to_string((int)door.State)));
 								if (door.State == Door::DoorState::Open) {
 									room.GetER().CreateEntity(
@@ -414,15 +421,6 @@ namespace world {
 							}
 						}
 					}
-				}
-			}
-			// Add floors
-			for (int x = unitCenter.X - unitSize.X / 2.f; x < unitCenter.X + unitSize.X / 2.f; x++) {
-				for (int z = unitCenter.Z - unitSize.Z / 2.f; z < unitCenter.Z + unitSize.Z / 2.f; z++) {
-					room.GetER().CreateEntity(
-						Position(Vector3(x, -k_tileSize, z), Vector3::Zero),
-						Model(floorModel)
-					);
 				}
 			}
 		}
