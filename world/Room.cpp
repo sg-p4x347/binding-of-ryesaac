@@ -31,8 +31,8 @@ namespace world {
 	{
 
 		for (auto& entity : ER.GetIterator<Model, Position>()) {
-			Position& position = entity.GetBitmap<Position>();
-			Model& modelComp = entity.GetBitmap<Model>();
+			Position& position = entity.Get<Position>();
+			Model& modelComp = entity.Get<Model>();
 			if (modelComp.ModelPtr) {
 
 				glPushMatrix();
@@ -72,10 +72,10 @@ namespace world {
 	{
 		set<ecs::EntityID> dead;
 		for (auto& entity : ER.GetIterator<Agent, Movement, Collision, Position>()) {
-			auto& agent = entity.GetBitmap<Agent>();
-			auto& movement = entity.GetBitmap<Movement>();
-			auto& collision = entity.GetBitmap<Collision>();
-			auto& position = entity.GetBitmap<Position>();
+			auto& agent = entity.Get<Agent>();
+			auto& movement = entity.Get<Movement>();
+			auto& collision = entity.Get<Collision>();
+			auto& position = entity.Get<Position>();
 
 			// Convert agent heading into a velocity
 			agent.Heading.Normalize();
@@ -91,10 +91,10 @@ namespace world {
 				shared_ptr<geom::Model> projectileModel;
 				switch (agent.Faction) {
 				case Agent::AgentFaction::Bread:
-					projectileModel = ModelRepository::GetBitmap("butter");
+					projectileModel = ModelRepository::Get("butter");
 					break;
 				case Agent::AgentFaction::Toast:
-					projectileModel = ModelRepository::GetBitmap("butter");
+					projectileModel = ModelRepository::Get("butter");
 					break;
 				}
 				Agent projectile = Agent(agent.Faction, 16.f, 0, 0.f, 0.f, 1);
@@ -116,7 +116,7 @@ namespace world {
 					// Apply damage if not in recovery (temporary invincibility after taking damage)
 					if (!agent.RecoveryCooldown && !collision.Contacts.empty()) {
 						for (auto& other : ER.GetIterator<Agent>()) {
-							auto& otherAgent = other.GetBitmap<Agent>();
+							auto& otherAgent = other.Get<Agent>();
 							// check to see if other is a different faction and shows up in our contact list
 							if (otherAgent.Faction != agent.Faction) {
 								for (auto& contact : collision.Contacts) {
@@ -150,8 +150,8 @@ namespace world {
 	void Room::MovementUpdate(double elapsed)
 	{
 		for (auto& entity : ER.GetIterator<Movement, Position>()) {
-			auto& movement = entity.GetBitmap<Movement>();
-			auto& position = entity.GetBitmap<Position>();
+			auto& movement = entity.Get<Movement>();
+			auto& position = entity.Get<Position>();
 
 			position.Pos += movement.Velocity * elapsed;
 		}
@@ -159,14 +159,14 @@ namespace world {
 	void Room::CollisionUpdate(double elapsed)
 	{
 		for (auto& dynamicCollider : ER.GetIterator<Movement,Collision, Position>()) {
-			auto& movement = dynamicCollider.GetBitmap<Movement>();
-			auto& dynamicCollision = dynamicCollider.GetBitmap<Collision>();
-			auto& dynamicPosition = dynamicCollider.GetBitmap<Position>();
+			auto& movement = dynamicCollider.Get<Movement>();
+			auto& dynamicCollision = dynamicCollider.Get<Collision>();
+			auto& dynamicPosition = dynamicCollider.Get<Position>();
 			dynamicCollision.Contacts.clear();
 			auto dynamicCollisionVolume = dynamicCollision.CollisionVolume->Transform(dynamicPosition.GetTransform());
 			for (auto& staticCollider : ER.GetIterator<Collision, Position>()) {
-				auto& staticCollision = staticCollider.GetBitmap<Collision>();
-				auto& staticPosition = staticCollider.GetBitmap<Position>();
+				auto& staticCollision = staticCollider.Get<Collision>();
+				auto& staticPosition = staticCollider.Get<Position>();
 				if (staticCollision.ID != dynamicCollision.ID && (staticPosition.Pos - dynamicPosition.Pos).LengthSquared() < k_collisionCullRange * k_collisionCullRange) {
 					staticCollision.Contacts.clear();
 					auto staticCollisionVolume = staticCollision.CollisionVolume->Transform(staticPosition.GetTransform());

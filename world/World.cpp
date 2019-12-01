@@ -23,6 +23,7 @@ using math::PI;
 #include "Player.h"
 #include "Agent.h"
 #include "Door.h"
+#include "AI.h"
 
 namespace world {
 	const float World::k_tileSize = 1.f;
@@ -33,6 +34,8 @@ namespace world {
 	
 	const int World::k_roomCount = 20;
 	const Vector3 World::k_cameraOffset = Vector3(0.f, 8.f, -4.f);
+
+	const float World::k_toasterProbability = 0.01f;
 
 	
 	//const Vector3 World::k_cameraOffset = Vector3(0.f, 1.f, -1.f);
@@ -55,7 +58,7 @@ namespace world {
 			Agent(Agent::AgentFaction::Bread,8.f,1,0.5f,2.f,1),
 			Movement(),
 			Position(Vector3(0.f,0.f,0.f), Vector3()),
-			Model(ModelRepository::GetBitmap("sphere")),
+			Model(ModelRepository::Get("sphere")),
 			Collision(std::make_shared<Sphere>(Vector3::Zero, 0.25f))
 		);
 
@@ -123,6 +126,7 @@ namespace world {
 
 			// bake each unit into entities
 			BakeRoomUnits(roomMap, roomNode->Data);
+			SpawnToasters(roomMap, roomNode->Data);
 		}
 		
 		
@@ -146,10 +150,10 @@ namespace world {
 		
 		gluPerspective(70.0, (double)windowWidth / windowHeight, 0.01, 1000.0);
 		
-		// GetBitmap the player's position
+		// Get the player's position
 		for (auto& entity : m_currentNode->Data.GetER().GetIterator<Player, Position>()) {
-			auto& player = entity.GetBitmap<Player>();
-			auto& position = entity.GetBitmap<Position>();
+			auto& player = entity.Get<Player>();
+			auto& position = entity.Get<Position>();
 			Vector3 camera = position.Pos + k_cameraOffset;
 			Vector3 lookDir = position.Pos - camera;
 			gluLookAt(
@@ -183,9 +187,9 @@ namespace world {
 		Vector3 playerPosition;
 		ecs::EntityID playerID;
 		for (auto& entity : m_currentNode->Data.GetER().GetIterator<Player, Agent, Position>()) {
-			auto & player = entity.GetBitmap<Player>();
-			auto& agent = entity.GetBitmap<Agent>();
-			auto& position = entity.GetBitmap<Position>();
+			auto & player = entity.Get<Player>();
+			auto& agent = entity.Get<Agent>();
+			auto& position = entity.Get<Position>();
 
 			playerID = player.ID;
 			playerPosition = position.Pos;
@@ -288,8 +292,8 @@ namespace world {
 	{
 		for (auto& adjacentNode : m_currentNode->AdjacentNodes) {
 			for (auto& entity : adjacentNode->Data.GetER().GetIterator<Door, Position>()) {
-				auto& adjacentDoor = entity.GetBitmap<Door>();
-				auto& adjacentPosition = entity.GetBitmap<Position>();
+				auto& adjacentDoor = entity.Get<Door>();
+				auto& adjacentPosition = entity.Get<Position>();
 				if (adjacentPosition.Pos == position) {
 					adjacentDoor.State = door.State;
 				}
@@ -329,8 +333,8 @@ namespace world {
 	}
 	void World::BakeRoomUnits(map<IntVec2, RoomGenerationUnit, IntVec2Comparer>& roomUnits, Room& room)
 	{
-		auto doorwayModel = ModelRepository::GetBitmap("doorway");
-		auto wallModel = ModelRepository::GetBitmap("wall");
+		auto doorwayModel = ModelRepository::Get("doorway");
+		auto wallModel = ModelRepository::Get("wall");
 		/*
 				 Z
 		  inside ^
@@ -339,7 +343,7 @@ namespace world {
 		X <------*
 
 		*/
-		auto cornerModel = ModelRepository::GetBitmap("corner");
+		auto cornerModel = ModelRepository::Get("corner");
 		/*
 				 Z
 		inside   ^
@@ -348,7 +352,7 @@ namespace world {
 		X <------*
 
 		*/
-		auto floorModel = ModelRepository::GetBitmap("floor");
+		auto floorModel = ModelRepository::Get("floor");
 		for (auto& unit : roomUnits) {
 			Vector3 unitCenter = Vector3(unit.first.X * k_roomUnitSize.X * k_tileSize,0.f,unit.first.Y * k_roomUnitSize.Y * k_tileSize);
 			Vector3 unitSize = Vector3(k_roomUnitSize.X * k_tileSize, 1.f, k_roomUnitSize.Y * k_tileSize);
@@ -399,10 +403,10 @@ namespace world {
 								// Doorway
 								room.GetER().CreateEntity(
 									position,
-									Model(ModelRepository::GetBitmap("doorway_" + std::to_string((int)door.Type)))
+									Model(ModelRepository::Get("doorway_" + std::to_string((int)door.Type)))
 								);
 								// Door
-								Model model = Model(ModelRepository::GetBitmap("door_" + std::to_string((int)door.State)));
+								Model model = Model(ModelRepository::Get("door_" + std::to_string((int)door.State)));
 								if (door.State == Door::DoorState::Open) {
 									room.GetER().CreateEntity(
 										door,
@@ -423,6 +427,28 @@ namespace world {
 					}
 				}
 			}
+		}
+	}
+	void World::SpawnToasters(map<IntVec2, RoomGenerationUnit, IntVec2Comparer>& roomUnits, Room& room)
+	{
+		auto toasterModel = ModelRepository::Get("toaster");
+		for (auto& unit : roomUnits) {
+			Vector3 unitCenter = Vector3(unit.first.X * k_roomUnitSize.X * k_tileSize, 0.f, unit.first.Y * k_roomUnitSize.Y * k_tileSize);
+			Vector3 unitSize = Vector3(k_roomUnitSize.X * k_tileSize, 1.f, k_roomUnitSize.Y * k_tileSize);
+			for (int x = unitCenter.X - unitSize.X / 2.0 + 1; x < unitCenter.X + unitSize.X / 2.0; x++) {
+				for (int z = unitCenter.Z - unitSize.Z / 2.0 + 1; z < unitCenter.Z + unitSize.Z / 2.0;z++) {
+					if (math::Chance(k_toasterProbability)) {
+						room.GetER().CreateEntity(
+							Position(Vector3(x,unitCenter.Y,z), Vector3::Zero),
+							Model(toasterModel),
+							Movement(),
+							Agent(Agent::AgentFaction::Toast, 2.f, 4, 6, 0.f, 1),
+							AI()
+						);
+					}
+				}
+			}
+			
 		}
 	}
 	int World::RollDoorCount(int max)

@@ -72,7 +72,7 @@ namespace geom {
 	void ModelImporter::ProcessMesh(fbxsdk::FbxMesh* fbxMesh, Model& model)
 	{
 		ModelMesh mesh;
-		// GetBitmap first available layer
+		// Get first available layer
 		for (int i = 0; i < fbxMesh->GetLayerCount(); i++)
 			if (fbxMesh->GetLayer(i)->GetTextures(FbxLayerElement::EType::eTextureDiffuse)) {
 				fbxMesh->GetLayer(i)->GetTextures(FbxLayerElement::EType::eTextureDiffuse);
@@ -202,9 +202,9 @@ namespace geom {
 		//	{
 		//		//Now we have a hardware shader, let's read it
 		//		const fbxsdk::FbxBindingTable* lRootTable = lImplementation->GetRootTable();
-		//		fbxsdk::FbxString lFileName = lRootTable->DescAbsoluteURL.GetBitmap();
+		//		fbxsdk::FbxString lFileName = lRootTable->DescAbsoluteURL.Get();
 		//		/*material.pixelShader = lFileName.Buffer();*/
-		//		fbxsdk::FbxString lTechniqueName = lRootTable->DescTAG.GetBitmap();
+		//		fbxsdk::FbxString lTechniqueName = lRootTable->DescTAG.Get();
 		//		size_t lEntryNum = lRootTable->GetEntryCount();
 		//		for (int i = 0; i < (int)lEntryNum; ++i)
 		//		{

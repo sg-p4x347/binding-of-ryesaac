@@ -11,7 +11,7 @@ namespace math {
 		Matrix(std::initializer_list<double> elements);
 		double GetInstance(int row, int column) const;
 		void Set(int row, int column, double value);
-		double GetBitmap(int row, int column) const;
+		double Get(int row, int column) const;
 		template<int RightColSize, int RightRowSize>
 		Matrix<RowSize, RightColSize> operator *(const Matrix<RightRowSize, RightColSize>& right);
 
@@ -59,7 +59,7 @@ namespace math {
 	}
 
 	template<int RowSize, int ColSize>
-	inline double Matrix<RowSize, ColSize>::GetBitmap(int row, int column) const
+	inline double Matrix<RowSize, ColSize>::Get(int row, int column) const
 	{
 		return m_data[row][column];
 	}
@@ -68,7 +68,7 @@ namespace math {
 	inline Vector3 Matrix<RowSize, ColSize>::operator*(const Vector3& vec)
 	{
 		auto result = *this * Matrix<4, 1>{vec.X, vec.Y, vec.Z, 1.0};
-		return Vector3(result.GetBitmap(0,0), result.GetBitmap(1,0), result.GetBitmap(2,0));
+		return Vector3(result.Get(0,0), result.Get(1,0), result.Get(2,0));
 	}
 
 	template<int RowSize, int ColSize>

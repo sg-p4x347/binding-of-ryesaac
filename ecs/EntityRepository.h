@@ -68,6 +68,7 @@ namespace ecs {
 		for (int i = 0; i < sourceVector.size(); i++) {
 			if (sourceVector[i].ID == id) {
 				destination.PushComponent(destination.m_nextId,CompType(sourceVector[i]));
+				return;
 			}
 			else if (sourceVector[i].ID > id) {
 				return;
@@ -142,7 +143,7 @@ namespace ecs {
 	public:
 		EntityIterator(RepoType& repository);
 		template<typename CompType>
-		CompType& GetBitmap() const;
+		CompType& Get() const;
 		const EntityIterator& operator*() const;
 		bool operator==(const EntityIterator<RepoType, QueryTypes...>& other) const;
 		bool operator!=(const EntityIterator<RepoType, QueryTypes...>& other) const;
@@ -155,9 +156,9 @@ namespace ecs {
 		bool End();
 	private:
 		template<typename CompType>
-		void Increment(EntityID entity);
+		bool Increment(EntityID entity);
 		template<typename First, typename Second, typename ... Rest>
-		void Increment(EntityID entity);
+		bool Increment(EntityID entity);
 	private:
 		tuple<pair<QueryTypes*, int32_t>...> m_componentIndices;
 		bool m_end;
@@ -237,14 +238,14 @@ namespace ecs {
 
 	template<typename RepoType, typename ...QueryTypes>
 	template<typename CompType>
-	inline CompType& EntityIterator<RepoType, QueryTypes...>::GetBitmap() const
+	inline CompType& EntityIterator<RepoType, QueryTypes...>::Get() const
 	{
 		return *std::get<pair<CompType*, int32_t>>(m_componentIndices).first;
 	}
 
 	template<typename RepoType, typename ...QueryTypes>
 	template<typename CompType>
-	inline void EntityIterator<RepoType, QueryTypes...>::Increment(EntityID entity)
+	bool EntityIterator<RepoType, QueryTypes...>::Increment(EntityID entity)
 	{
 		auto& componentVector = std::get<vector<CompType>>(m_repository.m_components);
 		auto& currentIndex = std::get<pair<CompType*, int32_t>>(m_componentIndices);
@@ -255,19 +256,19 @@ namespace ecs {
 			}
 		}
 		if (componentVector[currentIndex.second].ID > entity) {
-			m_end = true;
-			return;
+			//m_end = true;
+			//return;
 		}
 		currentIndex.first = &(componentVector[currentIndex.second]);
 	}
 
 	template<typename RepoType, typename ...QueryTypes>
 	template<typename First, typename Second, typename ... Rest>
-	inline void EntityIterator<RepoType, QueryTypes...>::Increment(EntityID entity)
+	bool EntityIterator<RepoType, QueryTypes...>::Increment(EntityID entity)
 	{
-		Increment<First>(entity);
+		bool success = Increment<First>(entity);
 		if (!m_end) {
-			Increment<Second, Rest...>(entity);
+			 return success && Increment<Second, Rest...>(entity);
 		}
 	}
 }

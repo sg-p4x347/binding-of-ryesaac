@@ -56,6 +56,7 @@ namespace world {
 		
 		vector<IntVec2> CreateRoomUnitSet(IntVec2 entrance, IntVec2 direction);
 		void BakeRoomUnits(map<IntVec2,RoomGenerationUnit,IntVec2Comparer> & roomUnits, Room & room);
+		void SpawnToasters(map<IntVec2, RoomGenerationUnit, IntVec2Comparer>& roomUnits, Room& room);
 		int RollDoorCount(int max);
 		int RollRoomUnits();
 		
@@ -76,5 +77,7 @@ namespace world {
 		static const int k_minRoomUnits; // each room unit is k_roomWidth tiles wide
 		static const int k_maxBranchingSize; // the maximum number of outward facing doors a room can have
 		static const Vector3 k_cameraOffset;
+
+		static const float k_toasterProbability; // The probability that a toaster will spawn on a tile
 	};
 }
