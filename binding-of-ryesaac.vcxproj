@@ -183,6 +183,7 @@
     <ClCompile Include="math\Utility.cpp" />
     <ClCompile Include="math\Vector2.cpp" />
     <ClCompile Include="math\Vector3.cpp" />
+    <ClCompile Include="MultimediaPlayer.cpp" />
     <ClCompile Include="Rectangle.cpp" />
     <ClCompile Include="world\Agent.cpp" />
     <ClCompile Include="world\Collision.cpp" />
@@ -214,6 +215,7 @@
     <ClInclude Include="math\Utility.h" />
     <ClInclude Include="math\Vector2.h" />
     <ClInclude Include="math\Vector3.h" />
+    <ClInclude Include="MultimediaPlayer.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Rectangle.h" />
     <ClInclude Include="world\Agent.h" />

@@ -25,6 +25,8 @@ using math::Vector2;
 #include "tex/TextureRepository.h"
 using tex::TextureRepository;
 
+#include "MultimediaPlayer.h"
+
 #include <GL/glut.h>
 
 void initialize();
@@ -113,6 +115,9 @@ void initialize() {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	// Set up audio
+	MultimediaPlayer musicPlayer = MultimediaPlayer("./Assets/audio/test.wav", true, true);
+	musicPlayer.startMusic();
 }
 void update()
 {

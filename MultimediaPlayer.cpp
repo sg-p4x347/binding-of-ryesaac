@@ -47,5 +47,9 @@ bool MultimediaPlayer::getPlayLoop()
 
 void MultimediaPlayer::startMusic()
 {
-	//PlaySound();
+	PlaySound(getFilePath().c_str(), // The filepath of the sound file
+		NULL, // Only not NULL if SND_RESOURCE is specified in the following parameters
+		SND_FILENAME // Specifies that the first paranmeter is a filename
+		| SND_ASYNC // Specifies asynchronous playing of the audio
+		| SND_LOOP); // Specifies audio should loop
 }
