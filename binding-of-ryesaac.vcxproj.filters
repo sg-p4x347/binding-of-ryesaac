@@ -86,6 +86,7 @@
       <Filter>Geometry</Filter>
     </ClCompile>
     <ClCompile Include="world\Collision.cpp" />
+    <ClCompile Include="MultimediaPlayer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -176,6 +177,7 @@
     <ClInclude Include="world\GraphNode.h">
       <Filter>World</Filter>
     </ClInclude>
+    <ClInclude Include="MultimediaPlayer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
