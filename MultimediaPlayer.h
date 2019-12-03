@@ -1,7 +1,9 @@
 #pragma once
 #include "pch.h"
 #include <Windows.h>
-#include <mmsystem.h>
+#include <Mmsystem.h>
+#include <mciapi.h>
+
 class MultimediaPlayer
 {
 private:
@@ -20,6 +22,9 @@ public:
 	void setPlayLoop(bool playLoop);
 	bool getPlayLoop();
 
-	void startMusic();
+	//void openFile();
+
+	void startAudio();
+	void stopAudio();
 };
 

@@ -29,6 +29,8 @@ using tex::TextureRepository;
 
 #include <GL/glut.h>
 
+#include <thread>
+
 void initialize();
 void update();
 void render();
@@ -117,7 +119,9 @@ void initialize() {
 
 	// Set up audio
 	MultimediaPlayer musicPlayer = MultimediaPlayer("./Assets/audio/test.wav", true, true);
-	musicPlayer.startMusic();
+	musicPlayer.startAudio();
+	MultimediaPlayer vocalsPlayer = MultimediaPlayer("./Assets/audio/test.wav", true, false);
+	//vocalsPlayer.startAudio();
 }
 void update()
 {
