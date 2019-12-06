@@ -118,10 +118,8 @@ void initialize() {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// Set up audio
-	MultimediaPlayer musicPlayer = MultimediaPlayer("./Assets/audio/test.wav", true, true);
+	MultimediaPlayer musicPlayer = MultimediaPlayer("./Assets/audio/RyesaacVox.wav", true, true);
 	musicPlayer.startAudio();
-	MultimediaPlayer vocalsPlayer = MultimediaPlayer("./Assets/audio/test.wav", true, false);
-	//vocalsPlayer.startAudio();
 }
 void update()
 {
