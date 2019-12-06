@@ -118,7 +118,7 @@ void initialize() {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// Set up audio
-	MultimediaPlayer musicPlayer = MultimediaPlayer("./Assets/audio/RyesaacVox.wav", true, true);
+	MultimediaPlayer musicPlayer = MultimediaPlayer("./Assets/audio/Intro_Condesa_Vox_Overlay.wav", true, false);
 	musicPlayer.startAudio();
 }
 void update()
