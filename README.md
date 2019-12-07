@@ -1,4 +1,4 @@
-# binding-of-ryesaac
+# Binding Of Ryesaac
 A 3D game written in C++ using opengl
 
 ## Build

@@ -94,6 +94,7 @@
     <ClCompile Include="world\AI.cpp">
       <Filter>World</Filter>
     </ClCompile>
+    <ClCompile Include="MultimediaPlayer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -191,6 +192,7 @@
     <ClInclude Include="world\AI.h">
       <Filter>World</Filter>
     </ClInclude>
+    <ClInclude Include="MultimediaPlayer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />

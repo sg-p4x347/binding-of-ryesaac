@@ -1,13 +1,20 @@
 /*-----------------------------------------------------------------------------------------
- COURSE:				
- PROGRAMMERS:			Gage Coates (Coates347)
- MODIFIED BY:			Gage Coates (Coates347)
- DATE MODIFIED:			
-
- FOLDER:				
- DESCRIPTION:			
- NOTE:					N/A
- FILES:					
+ COURSE:				CSC525-001 Computer Graphics
+ PROGRAMMERS:			Gage Coates		(Coates347)
+							Contributions:	
+							Percentage:		
+						Paul Durham		(Durham321)
+							Contributions:
+							Percentage:
+						Anthony Harris	(Anthony999)
+							Contributions:
+							Percentage:
+						Devlyn Hogue	(Hogue3)
+							Contributions:
+							Percentage:
+ LAST MODIFIED:			12/09/2019
+ DESCRIPTION:			A bread pun based version of the game "The Binding of Isaac" using
+						the OpenGL graphics library
  IDE/COMPILER:			MicroSoft Visual Studio 2019
  INSTRUCTION FOR COMPILATION AND EXECUTION:
 	1.		Double click on project3.sln	to OPEN the project
@@ -25,9 +32,17 @@ using math::Vector2;
 #include "tex/TextureRepository.h"
 using tex::TextureRepository;
 
+#include "tex/Bitmap.h"
+using tex::Bitmap;
+
+#include "MultimediaPlayer.h"
+
 #include <GL/glut.h>
 
+#include <thread>
+
 void initialize();
+void runIntro();
 void update();
 void render();
 void renderTick(int value);
@@ -96,6 +111,15 @@ void initialize() {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	runIntro();
+}
+void runIntro()
+{
+	Bitmap introPanel = Bitmap::FromFile("./Assets/ogp.bmp");
+
+	// Set up audio
+	MultimediaPlayer musicPlayer = MultimediaPlayer("./Assets/audio/Intro_Condesa_Vox_Overlay.wav", true, false);
+	musicPlayer.startAudio();
 }
 void update()
 {
