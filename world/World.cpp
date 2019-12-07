@@ -449,6 +449,7 @@ namespace world {
 							Model(toasterModel),
 							Movement(),
 							Agent(Agent::AgentFaction::Toast, 2.f, 4, 6, 0.f, 1),
+							Collision(std::make_shared<Sphere>(Vector3::Zero, 0.25f)),
 							AI()
 						);
 					}

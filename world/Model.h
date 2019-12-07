@@ -11,5 +11,6 @@ namespace world {
 	{
 		Model(shared_ptr<geom::Model> model);
 		shared_ptr<geom::Model> ModelPtr;
+		bool Hidden;
 	};
 }
