@@ -28,11 +28,11 @@ using math::PI;
 namespace world {
 	const float World::k_tileSize = 1.f;
 	const IntVec2 World::k_roomUnitSize = IntVec2(14,8);
-	const int World::k_maxRoomUnits = 2;
+	const int World::k_maxRoomUnits = 1;
 	const int World::k_minRoomUnits = 1;
 	const int World::k_maxBranchingSize = 8;
 	
-	const int World::k_roomCount = 20;
+	const int World::k_roomCount = 2;
 	const Vector3 World::k_cameraOffset = Vector3(0.f, 8.f, -4.f);
 
 	const float World::k_toasterProbability = 0.01f;
@@ -176,7 +176,6 @@ namespace world {
 		glPopMatrix();
 		
 
-
 		// flush out the buffer contents
 		glFinish();
 		glutSwapBuffers();
@@ -185,7 +184,7 @@ namespace world {
 	void World::PlayerUpdate(double elapsed)
 	{
 		Vector3 playerPosition;
-		ecs::EntityID playerID;
+		ecs::EntityID playerID = 0;
 		for (auto& entity : m_currentNode->Data.GetER().GetIterator<Player, Agent, Position>()) {
 			auto & player = entity.Get<Player>();
 			auto& agent = entity.Get<Agent>();
@@ -229,7 +228,7 @@ namespace world {
 			}
 		}
 		m_nextCurrentNode = UpdateCurrentNode(playerPosition);
-		if (m_nextCurrentNode && m_currentNode != m_nextCurrentNode) {
+		if (playerID && m_nextCurrentNode && m_currentNode != m_nextCurrentNode) {
 			// Remove the player from this node and place them in the new current node
 			EntityRepository::Copy(playerID, m_currentNode->Data.GetER(), m_nextCurrentNode->Data.GetER());
 			
@@ -260,8 +259,12 @@ namespace world {
 		for (auto& id : m_removedEntities) {
 			m_currentNode->Data.GetER().Remove(id);
 		}
+		m_removedEntities.clear();
 		if (m_nextCurrentNode)
 			m_currentNode = m_nextCurrentNode;
+
+		auto bitmap = TextureRepository::GetBitmap("myBitmap");
+		glDrawPixels(bitmap->GetWidth(), bitmap->GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE, bitmap->GetPixels());
 	}
 
 	void World::UpdateKeyState(char key, bool state)
