@@ -115,8 +115,8 @@ void initialize() {
 }
 void runIntro()
 {
-	Bitmap introPanel = Bitmap::FromFile("./Assets/ogp.bmp");
-
+	//auto bitmap = TextureRepository::GetBitmap("myBitmap");
+	//glDrawPixels(bitmap->GetWidth(), bitmap->GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE, bitmap->GetPixels());
 	// Set up audio
 	MultimediaPlayer musicPlayer = MultimediaPlayer("./Assets/audio/Intro_Condesa_Vox_Overlay.wav", true, false);
 	musicPlayer.startAudio();
