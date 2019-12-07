@@ -72,6 +72,12 @@ namespace geom {
 	void ModelImporter::ProcessMesh(fbxsdk::FbxMesh* fbxMesh, Model& model)
 	{
 		ModelMesh mesh;
+		// Get first available layer
+		for (int i = 0; i < fbxMesh->GetLayerCount(); i++)
+			if (fbxMesh->GetLayer(i)->GetTextures(FbxLayerElement::EType::eTextureDiffuse)) {
+				fbxMesh->GetLayer(i)->GetTextures(FbxLayerElement::EType::eTextureDiffuse);
+			}
+				
 		int index = 0;
 		for (int polyIndex = 0; polyIndex < fbxMesh->GetPolygonCount(); polyIndex++) {
 
@@ -153,140 +159,132 @@ namespace geom {
 	}
 	void ModelImporter::ImportMaterials(fbxsdk::FbxScene* scene, Model& model)
 	{
-		for (int i = 0; i < scene->GetMaterialCount(); i++) {
-			shared_ptr<Material> material = std::make_shared<Material>();
-			auto fbxMaterial = scene->GetMaterial(i);
-			/*material.name = fbxMaterial->GetName();
-			material.pixelShader = fbxMaterial->ShadingModel.GetInstance() + ".cso";*/
+		//for (int i = 0; i < scene->GetMaterialCount(); i++) {
+		//	shared_ptr<Material> material = std::make_shared<Material>();
+		//	auto fbxMaterial = scene->GetMaterial(i);
+		//	/*material.name = fbxMaterial->GetName();
+		//	material.pixelShader = fbxMaterial->ShadingModel.GetInstance() + ".cso";*/
 
-			//GetInstance the implementation to see if it's a hardware shader.
-			const fbxsdk::FbxImplementation* lImplementation = GetImplementation(fbxMaterial, FBXSDK_IMPLEMENTATION_HLSL);
-			fbxsdk::FbxString lImplemenationType = "HLSL";
-			if (!lImplementation)
-			{
-				lImplementation = GetImplementation(fbxMaterial, FBXSDK_IMPLEMENTATION_CGFX);
-				lImplemenationType = "CGFX";
-			}
-			if (!lImplementation)
-			{
-				lImplementation = GetImplementation(fbxMaterial, FBXSDK_IMPLEMENTATION_SFX);
-				lImplemenationType = "SFX";
-			}
-			if (!lImplementation)
-			{
-				lImplementation = GetImplementation(fbxMaterial, FBXSDK_IMPLEMENTATION_OGS);
-				lImplemenationType = "OGS";
-			}
-			if (!lImplementation)
-			{
-				lImplementation = GetImplementation(fbxMaterial, FBXSDK_IMPLEMENTATION_MENTALRAY);
-				lImplemenationType = "MENTALRAY";
-			}
-			if (!lImplementation)
-			{
-				lImplementation = GetImplementation(fbxMaterial, FBXSDK_IMPLEMENTATION_PREVIEW);
-				lImplemenationType = "PREVIEW";
-			}
-			if (!lImplementation)
-			{
-				lImplementation = GetImplementation(fbxMaterial, FBXSDK_IMPLEMENTATION_NONE);
-				lImplemenationType = "NONE";
-			}
-			if (lImplementation)
-			{
-				//Now we have a hardware shader, let's read it
-				const fbxsdk::FbxBindingTable* lRootTable = lImplementation->GetRootTable();
-				fbxsdk::FbxString lFileName = lRootTable->DescAbsoluteURL.Get();
-				/*material.pixelShader = lFileName.Buffer();*/
-				fbxsdk::FbxString lTechniqueName = lRootTable->DescTAG.Get();
-				size_t lEntryNum = lRootTable->GetEntryCount();
-				for (int i = 0; i < (int)lEntryNum; ++i)
-				{
-					const fbxsdk::FbxBindingTableEntry& lEntry = lRootTable->GetEntry(i);
-					const char* lEntrySrcType = lEntry.GetEntryType(true);
-					fbxsdk::FbxProperty lFbxProp;
-					fbxsdk::FbxString lTest = lEntry.GetSource();
-					if (strcmp(fbxsdk::FbxPropertyEntryView::sEntryType, lEntrySrcType) == 0)
-					{
-						lFbxProp = fbxMaterial->FindPropertyHierarchical(lEntry.GetSource());
-						if (!lFbxProp.IsValid())
-						{
-							lFbxProp = fbxMaterial->RootProperty.FindHierarchical(lEntry.GetSource());
-						}
-					}
-					else if (strcmp(fbxsdk::FbxConstantEntryView::sEntryType, lEntrySrcType) == 0)
-					{
-						lFbxProp = lImplementation->GetConstants().FindHierarchical(lEntry.GetSource());
-					}
-					if (lFbxProp.IsValid())
-					{
-						if (lFbxProp.GetSrcObjectCount<fbxsdk::FbxTexture>() > 0)
-						{
-							for (int j = 0; j < lFbxProp.GetSrcObjectCount<fbxsdk::FbxFileTexture>(); ++j)
-							{
-								fbxsdk::FbxFileTexture* lTex = lFbxProp.GetSrcObject<fbxsdk::FbxFileTexture>(j);
-								path texturePath = lTex->GetFileName();
-								material->DiffuseTexture = texturePath.stem().string();
-							}
-							for (int j = 0; j < lFbxProp.GetSrcObjectCount<fbxsdk::FbxLayeredTexture>(); ++j)
-							{
-								fbxsdk::FbxLayeredTexture* lTex = lFbxProp.GetSrcObject<fbxsdk::FbxLayeredTexture>(j);
-							}
-							for (int j = 0; j < lFbxProp.GetSrcObjectCount<fbxsdk::FbxProceduralTexture>(); ++j)
-							{
-								fbxsdk::FbxProceduralTexture* lTex = lFbxProp.GetSrcObject<fbxsdk::FbxProceduralTexture>(j);
-							}
-						}
-					}
-				}
-			}
-			else if (fbxMaterial->GetClassId().Is(fbxsdk::FbxSurfacePhong::ClassId))
-			{
-				//// We found a Phong material.  Display its properties.
-				//// Display the Ambient Color
-				//material.ambientColor = Convert(((FbxSurfacePhong*)fbxMaterial)->Ambient.GetInstance());
-				//// Display the Diffuse Color
-				//material.diffuseColor = Convert(((FbxSurfacePhong*)fbxMaterial)->Diffuse.GetInstance());
-				//// Display the Specular Color (unique to Phong materials)
-				//material.specularColor = Convert(((FbxSurfacePhong*)fbxMaterial)->Specular.GetInstance());
-				//// Display the Emissive Color
-				//material.emissiveColor = Convert(((FbxSurfacePhong*)fbxMaterial)->Emissive.GetInstance());
-				////Opacity is Transparency factor now
-				//material.alpha = (float)((FbxSurfacePhong*)fbxMaterial)->TransparencyFactor.GetInstance();
-				//// Display the Shininess
-				//material.specularPower = (float)((FbxSurfacePhong*)fbxMaterial)->Shininess;
-				//// Display the Reflectivity
-				////((FbxSurfacePhong *)fbxMaterial)->ReflectionFactor;
-			}
-			else if (fbxMaterial->GetClassId().Is(fbxsdk::FbxSurfaceLambert::ClassId))
-			{
-				//// We found a Lambert material. Display its properties.
-				//// Display the Ambient Color
-				//material.ambientColor = Convert(((FbxSurfaceLambert*)fbxMaterial)->Ambient.GetInstance());
-				//// Display the Diffuse Color
-				//material.diffuseColor = Convert(((FbxSurfaceLambert*)fbxMaterial)->Diffuse.GetInstance());
-				//// Display the Emissive
-				//material.emissiveColor = Convert(((FbxSurfaceLambert*)fbxMaterial)->Emissive.GetInstance());
-				//// Display the Opacity
-				//material.alpha = (float)(((FbxSurfaceLambert*)fbxMaterial)->TransparencyFactor.GetInstance());
-			}
+		//	//GetInstance the implementation to see if it's a hardware shader.
+		//	const fbxsdk::FbxImplementation* lImplementation = GetImplementation(fbxMaterial, FBXSDK_IMPLEMENTATION_HLSL);
+		//	fbxsdk::FbxString lImplemenationType = "HLSL";
+		//	if (!lImplementation)
+		//	{
+		//		lImplementation = GetImplementation(fbxMaterial, FBXSDK_IMPLEMENTATION_CGFX);
+		//		lImplemenationType = "CGFX";
+		//	}
+		//	if (!lImplementation)
+		//	{
+		//		lImplementation = GetImplementation(fbxMaterial, FBXSDK_IMPLEMENTATION_SFX);
+		//		lImplemenationType = "SFX";
+		//	}
+		//	if (!lImplementation)
+		//	{
+		//		lImplementation = GetImplementation(fbxMaterial, FBXSDK_IMPLEMENTATION_OGS);
+		//		lImplemenationType = "OGS";
+		//	}
+		//	if (!lImplementation)
+		//	{
+		//		lImplementation = GetImplementation(fbxMaterial, FBXSDK_IMPLEMENTATION_MENTALRAY);
+		//		lImplemenationType = "MENTALRAY";
+		//	}
+		//	if (!lImplementation)
+		//	{
+		//		lImplementation = GetImplementation(fbxMaterial, FBXSDK_IMPLEMENTATION_PREVIEW);
+		//		lImplemenationType = "PREVIEW";
+		//	}
+		//	if (!lImplementation)
+		//	{
+		//		lImplementation = GetImplementation(fbxMaterial, FBXSDK_IMPLEMENTATION_NONE);
+		//		lImplemenationType = "NONE";
+		//	}
+		//	if (lImplementation)
+		//	{
+		//		//Now we have a hardware shader, let's read it
+		//		const fbxsdk::FbxBindingTable* lRootTable = lImplementation->GetRootTable();
+		//		fbxsdk::FbxString lFileName = lRootTable->DescAbsoluteURL.Get();
+		//		/*material.pixelShader = lFileName.Buffer();*/
+		//		fbxsdk::FbxString lTechniqueName = lRootTable->DescTAG.Get();
+		//		size_t lEntryNum = lRootTable->GetEntryCount();
+		//		for (int i = 0; i < (int)lEntryNum; ++i)
+		//		{
+		//			const fbxsdk::FbxBindingTableEntry& lEntry = lRootTable->GetEntry(i);
+		//			const char* lEntrySrcType = lEntry.GetEntryType(true);
+		//			fbxsdk::FbxProperty lFbxProp;
+		//			fbxsdk::FbxString lTest = lEntry.GetSource();
+		//			if (strcmp(fbxsdk::FbxPropertyEntryView::sEntryType, lEntrySrcType) == 0)
+		//			{
+		//				lFbxProp = fbxMaterial->FindPropertyHierarchical(lEntry.GetSource());
+		//				if (!lFbxProp.IsValid())
+		//				{
+		//					lFbxProp = fbxMaterial->RootProperty.FindHierarchical(lEntry.GetSource());
+		//				}
+		//			}
+		//			else if (strcmp(fbxsdk::FbxConstantEntryView::sEntryType, lEntrySrcType) == 0)
+		//			{
+		//				lFbxProp = lImplementation->GetConstants().FindHierarchical(lEntry.GetSource());
+		//			}
+		//			if (lFbxProp.IsValid())
+		//			{
+		//				if (lFbxProp.GetSrcObjectCount<fbxsdk::FbxTexture>() > 0)
+		//				{
+		//					for (int j = 0; j < lFbxProp.GetSrcObjectCount<fbxsdk::FbxFileTexture>(); ++j)
+		//					{
+		//						fbxsdk::FbxFileTexture* lTex = lFbxProp.GetSrcObject<fbxsdk::FbxFileTexture>(j);
+		//						path texturePath = lTex->GetFileName();
+		//						material->DiffuseTexture = texturePath.stem().string();
+		//					}
+		//					for (int j = 0; j < lFbxProp.GetSrcObjectCount<fbxsdk::FbxLayeredTexture>(); ++j)
+		//					{
+		//						fbxsdk::FbxLayeredTexture* lTex = lFbxProp.GetSrcObject<fbxsdk::FbxLayeredTexture>(j);
+		//					}
+		//					for (int j = 0; j < lFbxProp.GetSrcObjectCount<fbxsdk::FbxProceduralTexture>(); ++j)
+		//					{
+		//						fbxsdk::FbxProceduralTexture* lTex = lFbxProp.GetSrcObject<fbxsdk::FbxProceduralTexture>(j);
+		//					}
+		//				}
+		//			}
+		//		}
+		//	}
+		//	else if (fbxMaterial->GetClassId().Is(fbxsdk::FbxSurfacePhong::ClassId))
+		//	{
+		//		//// We found a Phong material.  Display its properties.
+		//		//// Display the Ambient Color
+		//		//material.ambientColor = Convert(((FbxSurfacePhong*)fbxMaterial)->Ambient.GetInstance());
+		//		//// Display the Diffuse Color
+		//		//material.diffuseColor = Convert(((FbxSurfacePhong*)fbxMaterial)->Diffuse.GetInstance());
+		//		//// Display the Specular Color (unique to Phong materials)
+		//		//material.specularColor = Convert(((FbxSurfacePhong*)fbxMaterial)->Specular.GetInstance());
+		//		//// Display the Emissive Color
+		//		//material.emissiveColor = Convert(((FbxSurfacePhong*)fbxMaterial)->Emissive.GetInstance());
+		//		////Opacity is Transparency factor now
+		//		//material.alpha = (float)((FbxSurfacePhong*)fbxMaterial)->TransparencyFactor.GetInstance();
+		//		//// Display the Shininess
+		//		//material.specularPower = (float)((FbxSurfacePhong*)fbxMaterial)->Shininess;
+		//		//// Display the Reflectivity
+		//		////((FbxSurfacePhong *)fbxMaterial)->ReflectionFactor;
+		//	}
+		//	else if (fbxMaterial->GetClassId().Is(fbxsdk::FbxSurfaceLambert::ClassId))
+		//	{
+		//		cout << "lambert";
+		//	}
 
-			// Diffuse Textures
+		//	// Diffuse Textures
 
-			auto diffuseTextures = GetTextureConnections(fbxMaterial->FindProperty(fbxsdk::FbxSurfaceMaterial::sDiffuse));
-			if (!diffuseTextures.empty())
-				material->DiffuseTexture = diffuseTextures[0];
-			//// Specular Textures
-			//vector<string> specularTextures = GetTextureConnections(fbxMaterial->FindProperty(fbxsdk::FbxSurfaceMaterial::sSpecular));
-			//if (specularTextures.size())
-			//	cout << "Specular";
-			//// Normal Textures
-			//vector<string> normalTextures = GetTextureConnections(fbxMaterial->FindProperty(fbxsdk::FbxSurfaceMaterial::sNormalMap));
-			//if (normalTextures.size()) 
-			//	cout << "normal";
+		//	auto diffuseTextures = GetTextureConnections(fbxMaterial->FindProperty(fbxsdk::FbxSurfaceMaterial::sDiffuse));
+		//	if (!diffuseTextures.empty())
+		//		material->DiffuseTexture = diffuseTextures[0];
+		//	//// Specular Textures
+		//	//vector<string> specularTextures = GetTextureConnections(fbxMaterial->FindProperty(fbxsdk::FbxSurfaceMaterial::sSpecular));
+		//	//if (specularTextures.size())
+		//	//	cout << "Specular";
+		//	//// Normal Textures
+		//	//vector<string> normalTextures = GetTextureConnections(fbxMaterial->FindProperty(fbxsdk::FbxSurfaceMaterial::sNormalMap));
+		//	//if (normalTextures.size()) 
+		//	//	cout << "normal";
 
-			model.Materials[fbxMaterial->GetName()] = material;
-		}
+		//	model.Materials[fbxMaterial->GetName()] = material;
+		//}
 	}
 	Vector3 ModelImporter::Convert(fbxsdk::FbxDouble3& double3)
 	{
