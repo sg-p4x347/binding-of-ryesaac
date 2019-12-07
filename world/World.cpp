@@ -228,11 +228,10 @@ namespace world {
 				agent.Attack = false;
 			}
 		}
-		auto oldNode = m_currentNode;
 		m_nextCurrentNode = UpdateCurrentNode(playerPosition);
-		if (oldNode != m_currentNode) {
+		if (m_nextCurrentNode && m_currentNode != m_nextCurrentNode) {
 			// Remove the player from this node and place them in the new current node
-			EntityRepository::Copy(playerID, oldNode->Data.GetER(), m_currentNode->Data.GetER());
+			EntityRepository::Copy(playerID, m_currentNode->Data.GetER(), m_nextCurrentNode->Data.GetER());
 			
 			m_removedEntities.push_back(playerID);
 		}
