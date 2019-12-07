@@ -186,6 +186,7 @@
     <ClCompile Include="MultimediaPlayer.cpp" />
     <ClCompile Include="Rectangle.cpp" />
     <ClCompile Include="world\Agent.cpp" />
+    <ClCompile Include="world\AI.cpp" />
     <ClCompile Include="world\Collision.cpp" />
     <ClCompile Include="world\Door.cpp" />
     <ClCompile Include="world\Player.cpp" />
@@ -219,6 +220,7 @@
     <ClInclude Include="pch.h" />
     <ClInclude Include="Rectangle.h" />
     <ClInclude Include="world\Agent.h" />
+    <ClInclude Include="world\AI.h" />
     <ClInclude Include="world\Collision.h" />
     <ClInclude Include="world\Door.h" />
     <ClInclude Include="world\GraphNode.h" />

@@ -22,8 +22,6 @@ public:
 	void setPlayLoop(bool playLoop);
 	bool getPlayLoop();
 
-	//void openFile();
-
 	void startAudio();
 	void stopAudio();
 };

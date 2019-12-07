@@ -12,7 +12,6 @@ MultimediaPlayer::MultimediaPlayer(string filePath, bool playASync, bool playLoo
 	setFilePath(filePath);
 	setPlayASync(playASync);
 	setPlayLoop(playLoop);
-	//openFile();
 }
 
 void MultimediaPlayer::setFilePath(string filePath)
@@ -45,12 +44,6 @@ bool MultimediaPlayer::getPlayLoop()
 	return m_playLoop;
 }
 
-//void MultimediaPlayer::openFile()
-//{
-//	string stringParam = "open " + m_filePath + " type waveaudio alias wav";
-//	mciSendString(stringParam.c_str(), NULL, 0, NULL);
-//}
-
 void MultimediaPlayer::startAudio()
 {
 	if (m_playASync && m_playLoop)
@@ -75,10 +68,6 @@ void MultimediaPlayer::startAudio()
 			SND_FILENAME // Specifies that the first parameter is a filename
 			| SND_LOOP); // Specifies audio should loop
 	}
-
-	/*string stringParam = "play " + m_filePath + "wav";
-	if (m_playLoop) stringParam += " repeat";
-	mciSendString(stringParam.c_str(), NULL, 0, NULL);*/
 }
 
 void MultimediaPlayer::stopAudio()

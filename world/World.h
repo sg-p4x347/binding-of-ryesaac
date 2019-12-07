@@ -15,6 +15,7 @@ using ecs::EntityRepository;
 #include "Room.h"
 #include "Door.h"
 #include "GraphNode.h"
+#include "Door.h"
 
 namespace world {
 	struct RoomGenerationUnit {
@@ -44,7 +45,7 @@ namespace world {
 	private:
 		//----------------------------------------------------------------
 		// Local graph operations
-		void UpdateCurrentNode(Vector3 focus);
+		shared_ptr<GraphNode<Room>> UpdateCurrentNode(Vector3 focus);
 		IntVec2 GetUnitPosition(Vector3 worldPosition);
 		/* Searches adjacent nodes for a door with the specified position,
 		and updates it's state accordingly */
@@ -56,6 +57,7 @@ namespace world {
 		
 		vector<IntVec2> CreateRoomUnitSet(IntVec2 entrance, IntVec2 direction);
 		void BakeRoomUnits(map<IntVec2,RoomGenerationUnit,IntVec2Comparer> & roomUnits, Room & room);
+		void SpawnToasters(map<IntVec2, RoomGenerationUnit, IntVec2Comparer>& roomUnits, Room& room);
 		int RollDoorCount(int max);
 		int RollRoomUnits();
 		
@@ -65,6 +67,8 @@ namespace world {
 		map<char, bool> m_keys;
 		map<int, bool> m_specialKeys;
 		shared_ptr<GraphNode<Room>> m_currentNode;
+		shared_ptr<GraphNode<Room>> m_nextCurrentNode;
+		vector<ecs::EntityID> m_removedEntities;
 		map<IntVec2, shared_ptr<GraphNode<Room>>, IntVec2Comparer> m_roomMap;
 
 		//----------------------------------------------------------------
@@ -76,5 +80,7 @@ namespace world {
 		static const int k_minRoomUnits; // each room unit is k_roomWidth tiles wide
 		static const int k_maxBranchingSize; // the maximum number of outward facing doors a room can have
 		static const Vector3 k_cameraOffset;
+
+		static const float k_toasterProbability; // The probability that a toaster will spawn on a tile
 	};
 }

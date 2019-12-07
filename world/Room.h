@@ -8,6 +8,7 @@
 #include "Agent.h"
 #include "Player.h"
 #include "Door.h"
+#include "AI.h"
 
 namespace world {
 	typedef ecs::EntityRepository<
@@ -17,7 +18,8 @@ namespace world {
 		Model,
 		Agent,
 		Player,
-		Door
+		Door,
+		AI
 	> EntityRepository;
 
 	class Room

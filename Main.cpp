@@ -1,13 +1,20 @@
 /*-----------------------------------------------------------------------------------------
- COURSE:				
- PROGRAMMERS:			Gage Coates (Coates347)
- MODIFIED BY:			Gage Coates (Coates347)
- DATE MODIFIED:			
-
- FOLDER:				
- DESCRIPTION:			
- NOTE:					N/A
- FILES:					
+ COURSE:				CSC525-001 Computer Graphics
+ PROGRAMMERS:			Gage Coates		(Coates347)
+							Contributions:	
+							Percentage:		
+						Paul Durham		(Durham321)
+							Contributions:
+							Percentage:
+						Anthony Harris	(Anthony999)
+							Contributions:
+							Percentage:
+						Devlyn Hogue	(Hogue3)
+							Contributions:
+							Percentage:
+ LAST MODIFIED:			12/09/2019
+ DESCRIPTION:			A bread pun based version of the game "The Binding of Isaac" using
+						the OpenGL graphics library
  IDE/COMPILER:			MicroSoft Visual Studio 2019
  INSTRUCTION FOR COMPILATION AND EXECUTION:
 	1.		Double click on project3.sln	to OPEN the project
@@ -25,6 +32,9 @@ using math::Vector2;
 #include "tex/TextureRepository.h"
 using tex::TextureRepository;
 
+#include "tex/Bitmap.h"
+using tex::Bitmap;
+
 #include "MultimediaPlayer.h"
 
 #include <GL/glut.h>
@@ -32,6 +42,7 @@ using tex::TextureRepository;
 #include <thread>
 
 void initialize();
+void runIntro();
 void update();
 void render();
 void renderTick(int value);
@@ -92,30 +103,19 @@ void initialize() {
 	glCullFace(GL_BACK);
 	glDepthFunc(GL_LESS);				// Set the type of depth-test
 	glEnable(GL_DOUBLEBUFFER);
-	//glPolygonMode(GL_BACK, GL_NONE);
+	glEnable(GL_TEXTURE_2D);
 	// Set the viewport to cover the new window
 	glViewport(-2, 2, -2, 2);
 
-	auto texture = TextureRepository::Get("bricks");
-	if (texture) {
-		glEnable(GL_TEXTURE_2D);
-		// Create one OpenGL texture
-		GLuint textureID;
-		glGenTextures(1, &textureID);
-		// "Bind" the newly created texture : all future texture functions will modify this texture
-		glBindTexture(GL_TEXTURE_2D, textureID);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		// Give the image to OpenGL
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texture->GetWidth(), texture->GetHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, texture->GetPixels());
-	}
-	
 	
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	runIntro();
+}
+void runIntro()
+{
+	Bitmap introPanel = Bitmap::FromFile("./Assets/ogp.bmp");
 
 	// Set up audio
 	MultimediaPlayer musicPlayer = MultimediaPlayer("./Assets/audio/Intro_Condesa_Vox_Overlay.wav", true, false);
