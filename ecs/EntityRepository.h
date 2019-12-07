@@ -155,6 +155,7 @@ namespace ecs {
 		EntityIterator<RepoType, QueryTypes...> end();
 		bool End();
 	private:
+		void Increment();
 		template<typename CompType>
 		bool Increment(EntityID entity);
 		template<typename First, typename Second, typename ... Rest>
@@ -194,18 +195,7 @@ namespace ecs {
 	template<typename RepoType, typename ...QueryTypes>
 	inline EntityIterator<RepoType, QueryTypes...>& EntityIterator<RepoType, QueryTypes...>::operator++()
 	{
-		if (!m_end) {
-			auto& firstPair = std::get<0>(m_componentIndices);
-			++firstPair.second;
-			auto& firstCompVector = std::get<vector<std::remove_pointer<decltype(firstPair.first)>::type>>(m_repository.m_components);
-			if (firstPair.second == firstCompVector.size()) {
-				m_end = true;
-			}
-			else {
-				EntityID entity = firstCompVector[firstPair.second].ID;
-				Increment<QueryTypes...>(entity);
-			}
-		}
+		Increment();
 		return *this;
 	}
 
@@ -227,6 +217,27 @@ namespace ecs {
 	inline bool EntityIterator<RepoType, QueryTypes...>::End()
 	{
 		return m_end;
+	}
+
+	template<typename RepoType, typename ...QueryTypes>
+	inline void EntityIterator<RepoType,QueryTypes...>::Increment()
+	{
+		bool success = false;
+		while (!success && !m_end) {
+			
+			auto& firstPair = std::get<0>(m_componentIndices);
+			++firstPair.second;
+			auto& firstCompVector = std::get<vector<std::remove_pointer<decltype(firstPair.first)>::type>>(m_repository.m_components);
+			if (firstPair.second == firstCompVector.size()) {
+				m_end = true;
+			}
+			else {
+				EntityID entity = firstCompVector[firstPair.second].ID;
+				success = Increment<QueryTypes...>(entity);
+			}
+			
+		}
+		m_end = true;
 	}
 
 	template<typename RepoType, typename ...QueryTypes>
@@ -252,14 +263,14 @@ namespace ecs {
 		while (componentVector[currentIndex.second].ID < entity) {
 			if (++currentIndex.second == componentVector.size()) {
 				m_end = true;
-				return;
+				return false;
 			}
 		}
 		if (componentVector[currentIndex.second].ID > entity) {
-			//m_end = true;
-			//return;
+			return false;
 		}
 		currentIndex.first = &(componentVector[currentIndex.second]);
+		return true;
 	}
 
 	template<typename RepoType, typename ...QueryTypes>

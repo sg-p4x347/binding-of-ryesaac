@@ -46,7 +46,7 @@ namespace world {
 	void World::Generate()
 	{
 		// Seed the RNG with the current time for different results on every run
-		srand(time(NULL));
+		//srand(time(NULL));
 		int roomCount = 0;
 
 
@@ -229,11 +229,12 @@ namespace world {
 			}
 		}
 		auto oldNode = m_currentNode;
-		UpdateCurrentNode(playerPosition);
+		m_nextCurrentNode = UpdateCurrentNode(playerPosition);
 		if (oldNode != m_currentNode) {
 			// Remove the player from this node and place them in the new current node
 			EntityRepository::Copy(playerID, oldNode->Data.GetER(), m_currentNode->Data.GetER());
-			oldNode->Data.GetER().Remove(playerID);
+			
+			m_removedEntities.push_back(playerID);
 		}
 	}
 
@@ -255,8 +256,13 @@ namespace world {
 		m_currentNode->Data.Update(elapsed);
 		for (auto& adjacentNode : m_currentNode->AdjacentNodes)
 			adjacentNode->Data.Update(elapsed);
-		// Render the scene after all game systems have been updated
-		(elapsed);
+		
+		// Update the current node and perform post-update actions
+		for (auto& id : m_removedEntities) {
+			m_currentNode->Data.GetER().Remove(id);
+		}
+		if (m_nextCurrentNode)
+			m_currentNode = m_nextCurrentNode;
 	}
 
 	void World::UpdateKeyState(char key, bool state)
@@ -273,15 +279,16 @@ namespace world {
 	{
 
 	}
-	void World::UpdateCurrentNode(Vector3 focus)
+	shared_ptr<GraphNode<Room>> World::UpdateCurrentNode(Vector3 focus)
 	{
 		IntVec2 unitFocus = GetUnitPosition(focus);
 		auto it = m_roomMap.find(unitFocus);
 		if (it != m_roomMap.end()) {
 			if (it->second != m_currentNode) {
-				m_currentNode = it->second;
+				return it->second;
 			}
 		}
+		return nullptr;
 	}
 	IntVec2 World::GetUnitPosition(Vector3 worldPosition)
 	{

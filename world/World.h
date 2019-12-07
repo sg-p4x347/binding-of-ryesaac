@@ -44,7 +44,7 @@ namespace world {
 	private:
 		//----------------------------------------------------------------
 		// Local graph operations
-		void UpdateCurrentNode(Vector3 focus);
+		shared_ptr<GraphNode<Room>> UpdateCurrentNode(Vector3 focus);
 		IntVec2 GetUnitPosition(Vector3 worldPosition);
 		/* Searches adjacent nodes for a door with the specified position,
 		and updates it's state accordingly */
@@ -66,6 +66,8 @@ namespace world {
 		map<char, bool> m_keys;
 		map<int, bool> m_specialKeys;
 		shared_ptr<GraphNode<Room>> m_currentNode;
+		shared_ptr<GraphNode<Room>> m_nextCurrentNode;
+		vector<ecs::EntityID> m_removedEntities;
 		map<IntVec2, shared_ptr<GraphNode<Room>>, IntVec2Comparer> m_roomMap;
 
 		//----------------------------------------------------------------
