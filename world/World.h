@@ -11,6 +11,7 @@ using ecs::EntityRepository;
 
 #include "Room.h"
 #include "GraphNode.h"
+#include "Door.h"
 
 namespace world {
 	struct RoomGenerationUnit {
