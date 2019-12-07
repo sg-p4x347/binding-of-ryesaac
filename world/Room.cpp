@@ -33,7 +33,7 @@ namespace world {
 		for (auto& entity : ER.GetIterator<Model, Position>()) {
 			Position& position = entity.Get<Position>();
 			Model& modelComp = entity.Get<Model>();
-			if (modelComp.ModelPtr) {
+			if (!modelComp.Hidden && modelComp.ModelPtr) {
 
 				glPushMatrix();
 				glEnable(GL_TEXTURE_2D);
@@ -42,7 +42,6 @@ namespace world {
 				glRotatef(math::RadToDeg(position.Rot.X), 1.f, 0.f, 0.f);
 				glRotatef(math::RadToDeg(position.Rot.Y), 0.f, 1.f, 0.f);
 				glRotatef(math::RadToDeg(position.Rot.Z), 0.f, 0.f, 1.f);
-
 
 				geom::Model& model = *modelComp.ModelPtr;
 				for (auto& mesh : model.Meshes) {
@@ -53,12 +52,10 @@ namespace world {
 						glNormal3f(vertex.Normal.X, vertex.Normal.Y, vertex.Normal.Z);
 						glTexCoord2f(vertex.TextureCoordinate.X, vertex.TextureCoordinate.Y);
 						glVertex3f(vertex.Position.X, vertex.Position.Y, vertex.Position.Z);
-
 					}
 					glEnd();
 				}
 				glBindTexture(GL_TEXTURE_2D, 0);
-
 
 				glPopMatrix();
 			}
@@ -73,8 +70,9 @@ namespace world {
 	void Room::AgentUpdate(double elapsed)
 	{
 		set<ecs::EntityID> dead;
-		for (auto& entity : ER.GetIterator<Agent, Movement, Collision, Position>()) {
+		for (auto& entity : ER.GetIterator<Agent, Model, Movement, Collision, Position>()) {
 			auto& agent = entity.Get<Agent>();
+			auto& model = entity.Get<Model>();
 			auto& movement = entity.Get<Movement>();
 			auto& collision = entity.Get<Collision>();
 			auto& position = entity.Get<Position>();
@@ -88,6 +86,14 @@ namespace world {
 			
 			// Update recovery cooldown
 			agent.RecoveryCooldown = std::max(0.0, agent.RecoveryCooldown - elapsed);
+			// Strobe the model while in cooldown
+			if (agent.RecoveryCooldown) {
+				static const float k_recoveryFlashPeriod = 1.f;
+				model.Hidden = std::fmodf(agent.RecoveryCooldown, k_recoveryFlashPeriod) <= k_recoveryFlashPeriod * 0.5f;
+			}
+			else {
+				model.Hidden = false;
+			}
 
 			if (agent.Attack && !agent.AttackCooldown) {
 				shared_ptr<geom::Model> projectileModel;
