@@ -4,6 +4,9 @@
 #include "geom/ModelRepository.h"
 using geom::ModelRepository;
 
+#include "tex/TextureRepository.h"
+using tex::TextureRepository;
+
 #include "geom/CollisionUtil.h"
 
 #include "geom/Sphere.h"
@@ -33,6 +36,8 @@ namespace world {
 			if (modelComp.ModelPtr) {
 
 				glPushMatrix();
+				glEnable(GL_TEXTURE_2D);
+				glBindTexture(GL_TEXTURE_2D,TextureRepository::GetID(modelComp.ModelPtr->Name));
 				glTranslatef(position.Pos.X, position.Pos.Y, position.Pos.Z);
 				glRotatef(math::RadToDeg(position.Rot.X), 1.f, 0.f, 0.f);
 				glRotatef(math::RadToDeg(position.Rot.Y), 0.f, 1.f, 0.f);
@@ -52,6 +57,7 @@ namespace world {
 					}
 					glEnd();
 				}
+				glBindTexture(GL_TEXTURE_2D, 0);
 
 
 				glPopMatrix();
