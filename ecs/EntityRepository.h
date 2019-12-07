@@ -237,7 +237,6 @@ namespace ecs {
 			}
 			
 		}
-		m_end = true;
 	}
 
 	template<typename RepoType, typename ...QueryTypes>
@@ -266,7 +265,7 @@ namespace ecs {
 				return false;
 			}
 		}
-		if (componentVector[currentIndex.second].ID > entity) {
+		if (componentVector[currentIndex.second].ID != entity) {
 			return false;
 		}
 		currentIndex.first = &(componentVector[currentIndex.second]);

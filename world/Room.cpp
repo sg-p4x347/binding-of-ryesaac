@@ -36,6 +36,7 @@ namespace world {
 			if (modelComp.ModelPtr) {
 
 				glPushMatrix();
+				glEnable(GL_TEXTURE_2D);
 				glBindTexture(GL_TEXTURE_2D,TextureRepository::GetID(modelComp.ModelPtr->Name));
 				glTranslatef(position.Pos.X, position.Pos.Y, position.Pos.Z);
 				glRotatef(math::RadToDeg(position.Rot.X), 1.f, 0.f, 0.f);
@@ -56,6 +57,7 @@ namespace world {
 					}
 					glEnd();
 				}
+				glBindTexture(GL_TEXTURE_2D, 0);
 
 
 				glPopMatrix();

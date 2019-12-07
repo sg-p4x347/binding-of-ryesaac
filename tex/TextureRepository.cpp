@@ -38,6 +38,9 @@ namespace tex {
 					)
 				);
 				GLuint textureID;
+
+				// Register the texture with OpenGLs
+				glEnable(GL_TEXTURE_2D);
 				glGenTextures(1, &textureID);
 				// "Bind" the newly created texture : all future texture functions will modify this texture
 				glBindTexture(GL_TEXTURE_2D, textureID);
@@ -48,12 +51,11 @@ namespace tex {
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 				// When MINifying the image, use a LINEAR blend of two mipmaps, each filtered LINEARLY too
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-				// Generate mipmaps, by the way.
-				gluBuild2DMipmaps(GL_TEXTURE_2D,GL_RGBA, bitmap->GetWidth(), bitmap->GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE,bitmap->GetPixels() );
+				// Generate mipmaps
+				gluBuild2DMipmaps(GL_TEXTURE_2D,GL_RGBA, bitmap->GetWidth(), bitmap->GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE, bitmap->GetPixels());
 				// Give the image to OpenGL
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, bitmap->GetWidth(), bitmap->GetHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, bitmap->GetPixels());
 
-				// Register the texture with OpenGL
 				m_glTextureIds.insert(
 					std::make_pair(
 						entry.path().stem().string(),
