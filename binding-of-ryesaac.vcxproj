@@ -169,6 +169,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ecs\Component.cpp" />
+    <ClCompile Include="game\Game.cpp" />
+    <ClCompile Include="game\MultimediaPlayer.cpp" />
     <ClCompile Include="geom\CollisionVolume.cpp" />
     <ClCompile Include="geom\ConvexHull.cpp" />
     <ClCompile Include="geom\Material.cpp" />
@@ -183,7 +185,6 @@
     <ClCompile Include="math\Utility.cpp" />
     <ClCompile Include="math\Vector2.cpp" />
     <ClCompile Include="math\Vector3.cpp" />
-    <ClCompile Include="MultimediaPlayer.cpp" />
     <ClCompile Include="Rectangle.cpp" />
     <ClCompile Include="world\Agent.cpp" />
     <ClCompile Include="world\AI.cpp" />
@@ -201,6 +202,8 @@
   <ItemGroup>
     <ClInclude Include="ecs\Component.h" />
     <ClInclude Include="ecs\EntityRepository.h" />
+    <ClInclude Include="game\Game.h" />
+    <ClInclude Include="game\MultimediaPlayer.h" />
     <ClInclude Include="geom\CollisionUtil.h" />
     <ClInclude Include="geom\CollisionVolume.h" />
     <ClInclude Include="geom\ConvexHull.h" />
@@ -216,7 +219,6 @@
     <ClInclude Include="math\Utility.h" />
     <ClInclude Include="math\Vector2.h" />
     <ClInclude Include="math\Vector3.h" />
-    <ClInclude Include="MultimediaPlayer.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Rectangle.h" />
     <ClInclude Include="world\Agent.h" />

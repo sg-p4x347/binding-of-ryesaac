@@ -23,6 +23,12 @@
 -----------------------------------------------------------------------------------------*/
 #include "pch.h"
 
+#include "game/Game.h"
+using game::Game;
+
+#include "game/MultimediaPlayer.h"
+using game::MultimediaPlayer;
+
 #include "world/World.h"
 using world::World;
 
@@ -35,8 +41,6 @@ using tex::TextureRepository;
 #include "tex/Bitmap.h"
 using tex::Bitmap;
 
-#include "MultimediaPlayer.h"
-
 #include <GL/glut.h>
 
 #include <thread>
@@ -46,13 +50,6 @@ void runIntro();
 void update();
 void render();
 void renderTick(int value);
-void mouseMoveHandler(int cursorX, int cursorY);
-void keyHandler(unsigned char key, int x, int y);
-void keyUpHandler(unsigned char key, int x, int y);
-void specialHandler(int key, int x, int y);
-void specialUpHandler(int key, int x, int y);
-
-World g_world;
 
 int main(int argc, char** argv) {
 	
@@ -66,15 +63,15 @@ int main(int argc, char** argv) {
 	// setting up
 	initialize();
 	// register a callback
-	glutPassiveMotionFunc(mouseMoveHandler);
-	glutKeyboardFunc(keyHandler);
-	glutKeyboardUpFunc(keyUpHandler);
-	glutSpecialFunc(specialHandler);
-	glutSpecialUpFunc(specialUpHandler);
+	glutPassiveMotionFunc(Game::mouseMoveHandler);
+	glutKeyboardFunc(Game::keyHandler);
+	glutKeyboardUpFunc(Game::keyUpHandler);
+	glutSpecialFunc(Game::specialHandler);
+	glutSpecialUpFunc(Game::specialUpHandler);
 	glutIdleFunc(update);
 	glutDisplayFunc(render);
 
-	g_world.Generate();
+	Game::GetInstance().GenerateWorld();
 	// Start 60 Hz frame rendering
 	glutTimerFunc(16, renderTick,0);
 	glutMainLoop();
@@ -110,53 +107,32 @@ void initialize() {
 	
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	runIntro();
 }
 void runIntro()
 {
-	//auto bitmap = TextureRepository::GetBitmap("myBitmap");
-	//glDrawPixels(bitmap->GetWidth(), bitmap->GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE, bitmap->GetPixels());
+	auto introPanels = TextureRepository::GetBitmap("ogp");
+	gluOrtho2D(0, 1, 0, 1);
+	glColor3f(0, 0, 0);
+	glBegin(GL_BITMAP);
+	glRasterPos2d(0, 0);
+	glDrawPixels(introPanels->GetWidth() / 2, introPanels->GetHeight() / 2, GL_RGBA, GL_UNSIGNED_BYTE, introPanels->GetPixels());
+	glEnd();
+
 	// Set up audio
-	MultimediaPlayer musicPlayer = MultimediaPlayer("./Assets/audio/Intro_Condesa_Vox_Overlay.wav", true, false);
-	musicPlayer.startAudio();
+	MultimediaPlayer::SetUp("./Assets/audio/Intro_Condesa_Vox_Overlay.wav", true, false);
+	MultimediaPlayer::GetInstance().startAudio();
 }
 void update()
 {
-	g_world.Update();
+	Game::GetInstance().Update();
 }
 void render() 
 {
-	g_world.Render();
+	Game::GetInstance().Render();
 }
 
 void renderTick(int value)
 {
 	glutPostRedisplay();
 	glutTimerFunc(16,renderTick,0);
-}
-
-void mouseMoveHandler(int cursorX, int cursorY)
-{
-	g_world.UpdateMousePosition(Vector2(cursorX, cursorY));
-}
-
-void keyHandler(unsigned char key, int x, int y)
-{
-	g_world.UpdateKeyState(key, true);
-}
-
-void keyUpHandler(unsigned char key, int x, int y)
-{
-	g_world.UpdateKeyState(key, false);
-}
-
-void specialHandler(int key, int x, int y)
-{
-	g_world.UpdateSpecialKeyState(key, true);
-}
-
-void specialUpHandler(int key, int x, int y)
-{
-	g_world.UpdateSpecialKeyState(key, false);
 }

@@ -16,6 +16,9 @@
     <Filter Include="ECS">
       <UniqueIdentifier>{5f75259a-24ff-4a92-aead-d4bdc4b32928}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Game">
+      <UniqueIdentifier>{0ece50a7-b973-4ad5-88c5-8f93f02a8c65}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
@@ -94,7 +97,12 @@
     <ClCompile Include="world\AI.cpp">
       <Filter>World</Filter>
     </ClCompile>
-    <ClCompile Include="MultimediaPlayer.cpp" />
+    <ClCompile Include="game\Game.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="game\MultimediaPlayer.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -192,7 +200,12 @@
     <ClInclude Include="world\AI.h">
       <Filter>World</Filter>
     </ClInclude>
-    <ClInclude Include="MultimediaPlayer.h" />
+    <ClInclude Include="game\Game.h">
+      <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="game\MultimediaPlayer.h">
+      <Filter>Game</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />

@@ -36,8 +36,6 @@ namespace world {
 	const Vector3 World::k_cameraOffset = Vector3(0.f, 8.f, -4.f);
 
 	const float World::k_toasterProbability = 0.01f;
-
-	
 	//const Vector3 World::k_cameraOffset = Vector3(0.f, 1.f, -1.f);
 	World::World()
 	{
