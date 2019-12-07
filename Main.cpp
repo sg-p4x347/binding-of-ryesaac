@@ -1,13 +1,20 @@
 /*-----------------------------------------------------------------------------------------
- COURSE:				
- PROGRAMMERS:			Gage Coates (Coates347)
- MODIFIED BY:			Gage Coates (Coates347)
- DATE MODIFIED:			
-
- FOLDER:				
- DESCRIPTION:			
- NOTE:					N/A
- FILES:					
+ COURSE:				CSC525-001 Computer Graphics
+ PROGRAMMERS:			Gage Coates		(Coates347)
+							Contributions:	
+							Percentage:		
+						Paul Durham		(Durham321)
+							Contributions:
+							Percentage:
+						Anthony Harris	(Anthony999)
+							Contributions:
+							Percentage:
+						Devlyn Hogue	(Hogue3)
+							Contributions:
+							Percentage:
+ LAST MODIFIED:			12/09/2019
+ DESCRIPTION:			A bread pun based version of the game "The Binding of Isaac" using
+						the OpenGL graphics library
  IDE/COMPILER:			MicroSoft Visual Studio 2019
  INSTRUCTION FOR COMPILATION AND EXECUTION:
 	1.		Double click on project3.sln	to OPEN the project
