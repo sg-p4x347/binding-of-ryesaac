@@ -86,6 +86,14 @@
       <Filter>Geometry</Filter>
     </ClCompile>
     <ClCompile Include="world\Collision.cpp" />
+    <ClCompile Include="math\IntVec2.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="world\Door.cpp" />
+    <ClCompile Include="Rectangle.cpp" />
+    <ClCompile Include="world\AI.cpp">
+      <Filter>World</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -174,6 +182,13 @@
       <Filter>Geometry</Filter>
     </ClInclude>
     <ClInclude Include="world\GraphNode.h">
+      <Filter>World</Filter>
+    </ClInclude>
+    <ClInclude Include="math\IntVec2.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Rectangle.h" />
+    <ClInclude Include="world\AI.h">
       <Filter>World</Filter>
     </ClInclude>
   </ItemGroup>

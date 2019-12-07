@@ -27,7 +27,14 @@ namespace math {
 	int RandWithin(int min, int max);
 
 	bool Chance(float probability);
-
+	// Performs a Fisher-Yates in-place shuffle
+	template<typename T>
+	void Shuffle(T& items) {
+		for (int i = 0; i < items.size() - 1; i++) {
+			int j = RandWithin(i, items.size() - 1);
+			std::swap(*(items.begin() + i), *(items.begin() + j));
+		}
+	}
 	//----------------------------------------------------------------
 	// Intersection
 

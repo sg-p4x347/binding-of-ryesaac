@@ -25,10 +25,24 @@ namespace math {
 		return X * X + Y * Y;
 	}
 
-	Vector2 Vector2::Normalized()
+	void Vector2::Normalize()
 	{
 		float length = Length();
-		return Vector2(X / length, Y / length);
+		if (length > 0.f) {
+			X /= length;
+			Y /= length;
+		}
+		else {
+			X = 0.f;
+			Y = 0.f;
+		}
+	}
+
+	Vector2 Vector2::Normalized()
+	{
+		Vector2 copy = *this;
+		copy.Normalize();
+		return copy;
 	}
 
 	Vector2 Vector2::Right()

@@ -34,10 +34,13 @@ void renderTick(int value);
 void mouseMoveHandler(int cursorX, int cursorY);
 void keyHandler(unsigned char key, int x, int y);
 void keyUpHandler(unsigned char key, int x, int y);
+void specialHandler(int key, int x, int y);
+void specialUpHandler(int key, int x, int y);
 
 World g_world;
 
 int main(int argc, char** argv) {
+	
 	glutInit(&argc, argv);
 	// specify a window size
 	glutInitWindowSize(600, 600);
@@ -51,6 +54,8 @@ int main(int argc, char** argv) {
 	glutPassiveMotionFunc(mouseMoveHandler);
 	glutKeyboardFunc(keyHandler);
 	glutKeyboardUpFunc(keyUpHandler);
+	glutSpecialFunc(specialHandler);
+	glutSpecialUpFunc(specialUpHandler);
 	glutIdleFunc(update);
 	glutDisplayFunc(render);
 
@@ -83,27 +88,10 @@ void initialize() {
 	glCullFace(GL_BACK);
 	glDepthFunc(GL_LESS);				// Set the type of depth-test
 	glEnable(GL_DOUBLEBUFFER);
-	//glPolygonMode(GL_BACK, GL_NONE);
+	glEnable(GL_TEXTURE_2D);
 	// Set the viewport to cover the new window
 	glViewport(-2, 2, -2, 2);
 
-	auto texture = TextureRepository::Get("test");
-	if (texture) {
-		glEnable(GL_TEXTURE_2D);
-		// Create one OpenGL texture
-		GLuint textureID;
-		glGenTextures(1, &textureID);
-		// "Bind" the newly created texture : all future texture functions will modify this texture
-		glBindTexture(GL_TEXTURE_2D, textureID);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		// Give the image to OpenGL
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texture->GetWidth(), texture->GetHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, texture->GetPixels());
-	}
-	
 	
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -137,4 +125,14 @@ void keyHandler(unsigned char key, int x, int y)
 void keyUpHandler(unsigned char key, int x, int y)
 {
 	g_world.UpdateKeyState(key, false);
+}
+
+void specialHandler(int key, int x, int y)
+{
+	g_world.UpdateSpecialKeyState(key, true);
+}
+
+void specialUpHandler(int key, int x, int y)
+{
+	g_world.UpdateSpecialKeyState(key, false);
 }

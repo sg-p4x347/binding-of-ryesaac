@@ -23,7 +23,8 @@ namespace ecs {
 		void Remove(EntityID id);
 		template<typename First, typename Second, typename ... Rest>
 		void Remove(EntityID id);
-
+		static void Copy(EntityID id, EntityRepository<CompTypes...>& source, EntityRepository<CompTypes...>& destination);
+		
 		template<typename ... QueryTypes>
 		EntityIterator<EntityRepository<CompTypes...>, QueryTypes...> GetIterator();
 	private:
@@ -33,6 +34,12 @@ namespace ecs {
 		void PushComponent(EntityID id, Comp&& component);
 		template<typename First, typename Second, typename ... Rest>
 		void PushComponent(EntityID id, First&& first, Second&& second, Rest&& ... rest);
+		//----------------------------------------------------------------
+		// Copy components from one repository to another
+		template<typename CompType>
+		static void Copy(EntityID id, EntityRepository<CompTypes...>& source, EntityRepository<CompTypes...>& destination);
+		template<typename First, typename Second, typename ... Rest>
+		static void Copy(EntityID id, EntityRepository<CompTypes...>& source, EntityRepository<CompTypes...>& destination);
 	private:
 		tuple<vector<CompTypes>...> m_components;
 		EntityID m_nextId;
@@ -47,6 +54,32 @@ namespace ecs {
 	inline void EntityRepository<CompTypes...>::Remove(EntityID id)
 	{
 		Remove<CompTypes...>(id);
+	}
+	template<typename ...CompTypes>
+	inline void EntityRepository<CompTypes...>::Copy(EntityID id, EntityRepository<CompTypes...>& source, EntityRepository<CompTypes...>& destination)
+	{
+		Copy<CompTypes...>(id, source, destination);
+		destination.m_nextId++;
+	}
+	template<typename ...CompTypes>
+	template<typename CompType>
+	void EntityRepository<CompTypes...>::Copy(EntityID id, EntityRepository<CompTypes...>& source, EntityRepository<CompTypes...>& destination) {
+		auto& sourceVector = std::get<vector<CompType>>(source.m_components);
+		for (int i = 0; i < sourceVector.size(); i++) {
+			if (sourceVector[i].ID == id) {
+				destination.PushComponent(destination.m_nextId,CompType(sourceVector[i]));
+				return;
+			}
+			else if (sourceVector[i].ID > id) {
+				return;
+			}
+		}
+	}
+	template<typename ...CompTypes>
+	template<typename First, typename Second, typename ... Rest>
+	void EntityRepository<CompTypes...>::Copy(EntityID id, EntityRepository<CompTypes...>& source, EntityRepository<CompTypes...>& destination) {
+		Copy<First>(id, source, destination);
+		Copy<Second, Rest...>(id, source, destination);
 	}
 	template<typename ...CompTypes>
 	template<typename CompType>
@@ -122,10 +155,11 @@ namespace ecs {
 		EntityIterator<RepoType, QueryTypes...> end();
 		bool End();
 	private:
+		void Increment();
 		template<typename CompType>
-		void Increment(EntityID entity);
+		bool Increment(EntityID entity);
 		template<typename First, typename Second, typename ... Rest>
-		void Increment(EntityID entity);
+		bool Increment(EntityID entity);
 	private:
 		tuple<pair<QueryTypes*, int32_t>...> m_componentIndices;
 		bool m_end;
@@ -161,18 +195,7 @@ namespace ecs {
 	template<typename RepoType, typename ...QueryTypes>
 	inline EntityIterator<RepoType, QueryTypes...>& EntityIterator<RepoType, QueryTypes...>::operator++()
 	{
-		if (!m_end) {
-			auto& firstPair = std::get<0>(m_componentIndices);
-			++firstPair.second;
-			auto& firstCompVector = std::get<vector<std::remove_pointer<decltype(firstPair.first)>::type>>(m_repository.m_components);
-			if (firstPair.second == firstCompVector.size()) {
-				m_end = true;
-			}
-			else {
-				EntityID entity = firstCompVector[firstPair.second].ID;
-				Increment<QueryTypes...>(entity);
-			}
-		}
+		Increment();
 		return *this;
 	}
 
@@ -197,6 +220,27 @@ namespace ecs {
 	}
 
 	template<typename RepoType, typename ...QueryTypes>
+	inline void EntityIterator<RepoType,QueryTypes...>::Increment()
+	{
+		bool success = false;
+		while (!success && !m_end) {
+			
+			auto& firstPair = std::get<0>(m_componentIndices);
+			++firstPair.second;
+			auto& firstCompVector = std::get<vector<std::remove_pointer<decltype(firstPair.first)>::type>>(m_repository.m_components);
+			if (firstPair.second == firstCompVector.size()) {
+				m_end = true;
+			}
+			else {
+				EntityID entity = firstCompVector[firstPair.second].ID;
+				success = Increment<QueryTypes...>(entity);
+			}
+			
+		}
+		m_end = true;
+	}
+
+	template<typename RepoType, typename ...QueryTypes>
 	inline EntityIterator<RepoType, QueryTypes...>::EntityIterator(RepoType& repository) : m_repository(repository), m_end(false)
 	{
 		auto& firstPair = std::get<0>(m_componentIndices).second = -1;
@@ -212,30 +256,30 @@ namespace ecs {
 
 	template<typename RepoType, typename ...QueryTypes>
 	template<typename CompType>
-	inline void EntityIterator<RepoType, QueryTypes...>::Increment(EntityID entity)
+	bool EntityIterator<RepoType, QueryTypes...>::Increment(EntityID entity)
 	{
 		auto& componentVector = std::get<vector<CompType>>(m_repository.m_components);
 		auto& currentIndex = std::get<pair<CompType*, int32_t>>(m_componentIndices);
 		while (componentVector[currentIndex.second].ID < entity) {
 			if (++currentIndex.second == componentVector.size()) {
 				m_end = true;
-				return;
+				return false;
 			}
 		}
 		if (componentVector[currentIndex.second].ID > entity) {
-			m_end = true;
-			return;
+			return false;
 		}
 		currentIndex.first = &(componentVector[currentIndex.second]);
+		return true;
 	}
 
 	template<typename RepoType, typename ...QueryTypes>
 	template<typename First, typename Second, typename ... Rest>
-	inline void EntityIterator<RepoType, QueryTypes...>::Increment(EntityID entity)
+	bool EntityIterator<RepoType, QueryTypes...>::Increment(EntityID entity)
 	{
-		Increment<First>(entity);
+		bool success = Increment<First>(entity);
 		if (!m_end) {
-			Increment<Second, Rest...>(entity);
+			 return success && Increment<Second, Rest...>(entity);
 		}
 	}
 }

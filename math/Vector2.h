@@ -11,6 +11,7 @@ namespace math {
 		float Dot(const Vector2& other);
 		float Length();
 		float LengthSquared();
+		void Normalize();
 		Vector2 Normalized();
 		Vector2 Right();
 		Vector2 Left();
