@@ -32,6 +32,9 @@ using math::Vector2;
 #include "tex/TextureRepository.h"
 using tex::TextureRepository;
 
+#include "tex/Bitmap.h"
+using tex::Bitmap;
+
 #include "MultimediaPlayer.h"
 
 #include <GL/glut.h>
@@ -39,6 +42,7 @@ using tex::TextureRepository;
 #include <thread>
 
 void initialize();
+void runIntro();
 void update();
 void render();
 void renderTick(int value);
@@ -123,6 +127,12 @@ void initialize() {
 	
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	runIntro();
+}
+void runIntro()
+{
+	Bitmap introPanel = Bitmap::FromFile("./Assets/ogp.bmp");
 
 	// Set up audio
 	MultimediaPlayer musicPlayer = MultimediaPlayer("./Assets/audio/Intro_Condesa_Vox_Overlay.wav", true, false);
