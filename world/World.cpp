@@ -262,9 +262,6 @@ namespace world {
 		m_removedEntities.clear();
 		if (m_nextCurrentNode)
 			m_currentNode = m_nextCurrentNode;
-
-		auto bitmap = TextureRepository::GetBitmap("myBitmap");
-		glDrawPixels(bitmap->GetWidth(), bitmap->GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE, bitmap->GetPixels());
 	}
 
 	void World::UpdateKeyState(char key, bool state)
