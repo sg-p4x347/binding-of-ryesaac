@@ -1,6 +1,7 @@
 #pragma once
 #include "ecs/EntityRepository.h"
 
+// Components
 #include "Position.h"
 #include "Movement.h"
 #include "Collision.h"
@@ -9,6 +10,9 @@
 #include "Player.h"
 #include "Door.h"
 #include "AI.h"
+#include "Item.h"
+
+#include "LootItem.h"
 
 namespace world {
 	typedef ecs::EntityRepository<
@@ -19,7 +23,8 @@ namespace world {
 		Agent,
 		Player,
 		Door,
-		AI
+		AI,
+		Item
 	> EntityRepository;
 
 	enum class CollisionChannel {
@@ -30,20 +35,31 @@ namespace world {
 	class Room
 	{
 	public:
-		Room();
+		Room(Vector3 center);
 		void Update(double elapsed);
 		void Render();
 		EntityRepository& GetER();
+		void AddLoot(LootItem item);
+		void DropLoot();
 	private:
 		void AgentUpdate(double elapsed);
 		void AiUpdate(double elapsed);
 		void MovementUpdate(double elapsed);
 		void CollisionUpdate(double elapsed);
+		// Updates door model and state based on the current door state and interactions
 		void DoorUpdate(double elapsed);
+		// Ensures that all doors are closed while in combat
+		void CombatUpdate(double elapsed);
+		// Transfer world items to the player inventory when in contact
+		void ItemUpdate(double elapsed);
 		void DeferredUpdate(double elapsed);
+		
 	private:
 		EntityRepository ER;
 		static const float k_collisionCullRange;
 		vector<function<void()>> m_deferredTasks;
+		vector<LootItem> m_loot;
+		Vector3 m_center;
+		bool m_inCombat;
 	};
 }
