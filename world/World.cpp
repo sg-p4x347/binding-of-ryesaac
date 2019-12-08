@@ -56,7 +56,7 @@ namespace world {
 			Agent(Agent::AgentFaction::Bread,8.f,1,0.5f,2.f,1),
 			Movement(),
 			Position(Vector3(0.f,0.f,0.f), Vector3()),
-			Model(ModelRepository::Get("sphere")),
+			Model(ModelRepository::Get("ryesaac")),
 			Collision(std::make_shared<Sphere>(Vector3::Zero, 0.25f))
 		);
 
