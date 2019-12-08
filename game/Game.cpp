@@ -62,7 +62,12 @@ namespace game
 		if (g_world) { g_world->Render(); }
 		else
 		{
-
+			auto introPanels = TextureRepository::GetBitmap("intro_corrected");
+			gluOrtho2D(0, 1, 0, 1);
+			glBegin(GL_BITMAP);
+			glRasterPos2d(0, 0);
+			glDrawPixels(introPanels->GetWidth() / 2, introPanels->GetHeight() / 2, GL_RGBA, GL_UNSIGNED_BYTE, introPanels->GetPixels());
+			glEnd();
 		}
 	}
 }

@@ -19,7 +19,7 @@ namespace game
 
 	MultimediaPlayer& MultimediaPlayer::GetInstance()
 	{
-		static MultimediaPlayer instance;
+		static MultimediaPlayer instance; // this is where the thread loop starts happening
 		return instance;
 	}
 

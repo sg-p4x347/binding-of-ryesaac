@@ -106,20 +106,14 @@ void initialize() {
 	
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-}
-void runIntro()
-{
-	auto introPanels = TextureRepository::GetBitmap("ogp");
-	gluOrtho2D(0, 1, 0, 1);
-	glColor3f(0, 0, 0);
-	glBegin(GL_BITMAP);
-	glRasterPos2d(0, 0);
-	glDrawPixels(introPanels->GetWidth() / 2, introPanels->GetHeight() / 2, GL_RGBA, GL_UNSIGNED_BYTE, introPanels->GetPixels());
-	glEnd();
-
+	
 	// Set up audio
 	MultimediaPlayer::SetUp("./Assets/audio/Intro_Condesa_Vox_Overlay.wav", true, false);
 	MultimediaPlayer::GetInstance().startAudio();
+}
+void runIntro()
+{
+	
 }
 void update()
 {

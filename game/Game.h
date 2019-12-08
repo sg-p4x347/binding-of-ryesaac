@@ -5,6 +5,11 @@
 #include "world/World.h"
 using world::World;
 
+#include "tex/TextureRepository.h"
+using tex::TextureRepository;
+
+#include <GL/glut.h>
+
 namespace game
 {
 	class Game
