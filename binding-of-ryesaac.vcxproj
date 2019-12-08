@@ -192,6 +192,7 @@
     <ClCompile Include="world\AI.cpp" />
     <ClCompile Include="world\Collision.cpp" />
     <ClCompile Include="world\Door.cpp" />
+    <ClCompile Include="world\Item.cpp" />
     <ClCompile Include="world\Player.cpp" />
     <ClCompile Include="world\Position.cpp" />
     <ClCompile Include="world\Room.cpp" />
@@ -199,6 +200,7 @@
     <ClCompile Include="tex\Pixel.cpp" />
     <ClCompile Include="tex\TextureRepository.cpp" />
     <ClCompile Include="world\Model.cpp" />
+    <ClCompile Include="world\RoomLink.cpp" />
     <ClCompile Include="world\World.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -228,6 +230,8 @@
     <ClInclude Include="world\Collision.h" />
     <ClInclude Include="world\Door.h" />
     <ClInclude Include="world\GraphNode.h" />
+    <ClInclude Include="world\Item.h" />
+    <ClInclude Include="world\LootItem.h" />
     <ClInclude Include="world\Movement.h" />
     <ClInclude Include="world\Player.h" />
     <ClInclude Include="world\Room.h" />
@@ -236,6 +240,7 @@
     <ClInclude Include="tex\TextureRepository.h" />
     <ClInclude Include="world\Model.h" />
     <ClInclude Include="world\Position.h" />
+    <ClInclude Include="world\RoomLink.h" />
     <ClInclude Include="world\World.h" />
   </ItemGroup>
   <ItemGroup>

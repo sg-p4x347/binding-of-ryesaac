@@ -15,7 +15,7 @@ using tex::TextureRepository;
 
 namespace world {
 	const float Room::k_collisionCullRange = 1.5f;
-	Room::Room()
+	Room::Room(Vector3 center) : m_center(center), m_inCombat(false)
 	{
 	}
 
@@ -26,6 +26,8 @@ namespace world {
 		MovementUpdate(elapsed);
 		CollisionUpdate(elapsed);
 		DoorUpdate(elapsed);
+		CombatUpdate(elapsed);
+		ItemUpdate(elapsed);
 		DeferredUpdate(elapsed);
 	}
 
@@ -70,6 +72,31 @@ namespace world {
 		return ER;
 	}
 
+	void Room::AddLoot(LootItem item)
+	{
+		m_loot.push_back(item);
+	}
+
+	void Room::DropLoot()
+	{
+		for (auto& loot : m_loot) {
+			string modelName = "";
+			switch (loot) {
+			case LootItem::Key: modelName = "key"; break;
+			}
+			m_deferredTasks.push_back([=] {
+				ER.CreateEntity(
+					Position(m_center, Vector3::Zero),
+					Model(ModelRepository::Get(modelName)),
+					Collision(std::make_shared<geom::Sphere>(Vector3::Zero, 0.25f)),
+					Item(loot)
+				);
+			});
+		}
+		// Consume the loot
+		m_loot.clear();
+	}
+
 	void Room::AgentUpdate(double elapsed)
 	{
 		for (auto& entity : ER.GetIterator<Agent, Model, Movement, Collision, Position>()) {
@@ -109,7 +136,7 @@ namespace world {
 				}
 				
 				m_deferredTasks.push_back([=] {
-					Agent projectile = Agent(agent.Faction, 16.f, 0, 0.f, 0.f, 1);
+					Agent projectile = Agent(agent.Faction, 8.f, 0, 0.f, 0.f, 1);
 					projectile.Heading = Vector3(std::cos(-position.Rot.Y), 0.f, std::sin(-position.Rot.Y));
 					ER.CreateEntity(
 						Position(position),
@@ -159,6 +186,19 @@ namespace world {
 
 	void Room::AiUpdate(double elapsed)
 	{
+		for (auto& playerEntity : ER.GetIterator<Player, Agent, Position>()) {
+			auto& player = playerEntity.Get<Agent>();
+			auto& playerPos = playerEntity.Get<Position>();
+
+			for (auto& enemyEntity : ER.GetIterator<Agent, Position>()) {
+				auto& enemy = enemyEntity.Get<Agent>();
+				auto& enemyPos = enemyEntity.Get<Position>();
+				if (enemy.Faction != player.Faction) {
+					enemy.Heading = playerPos.Pos - enemyPos.Pos;
+					enemyPos.Rot.Y = -std::atan2f(enemy.Heading.Z, enemy.Heading.X);
+				}
+			}
+		}
 	}
 
 	void Room::MovementUpdate(double elapsed)
@@ -226,6 +266,24 @@ namespace world {
 			auto& model = entity.Get<Model>();
 			auto& collision = entity.Get<Collision>();
 
+			if (door.State == Door::DoorState::Locked) {
+				for (auto& playerEntity : ER.GetIterator<Player, Collision>()) {
+					auto& player = playerEntity.Get<Player>();
+					if (player.Inventory[LootItem::Key] > 0) {
+						for (auto& contact : playerEntity.Get<Collision>().Contacts) {
+							if (contact.Collider == door.ID) {
+								// unlock the door
+								door.State = Door::DoorState::Open;
+								// consume the key
+								player.Inventory[LootItem::Key]--;
+								goto updateState;
+							}
+						}
+					}
+				}
+			}
+			updateState:
+
 			// Update model
 			model.ModelPtr = ModelRepository::Get("door_" + std::to_string((int)door.State));
 
@@ -241,7 +299,53 @@ namespace world {
 				break;
 			}
 
+
 		}
+	}
+	void Room::CombatUpdate(double elapsed)
+	{
+		bool previousCombatState = m_inCombat;
+		// While there are enemy agents in the room, keep the doors closed
+		for (auto& agent : ER.GetIterator<Agent>()) {
+			if (agent.Get<Agent>().Faction != Agent::AgentFaction::Bread) {
+				// Close all the doors if they are open
+				m_inCombat = true;
+				for (auto& door : ER.GetIterator<Door>()) {
+					if (door.Get<Door>().State == Door::DoorState::Open)
+						door.Get<Door>().State = Door::DoorState::Closed;
+				}
+				return;
+			}
+		}
+		// not in combat - Open all the non-locked doors
+		m_inCombat = false;
+		for (auto& door : ER.GetIterator<Door>()) {
+			if (door.Get<Door>().State == Door::DoorState::Closed)
+				door.Get<Door>().State = Door::DoorState::Open;
+		}
+		// Drop loot if the combat state has dropped to false
+		if (previousCombatState && !m_inCombat) {
+			DropLoot();
+		}
+	}
+	void Room::ItemUpdate(double elapsed)
+	{
+		for (auto& playerEntity : ER.GetIterator<Player, Collision>()) {
+			auto& player = playerEntity.Get<Player>();
+			for (auto& contact : playerEntity.Get<Collision>().Contacts) {
+				for (auto& entity : ER.GetIterator<Item>()) {
+					auto& item = entity.Get<Item>();
+					if (item.ID == contact.Collider) {
+						// Perform the transaction
+						player.Inventory[item.Type]++;
+						m_deferredTasks.push_back([=] {
+							ER.Remove(item.ID);
+						});
+					}
+				}
+			}
+		}
+		
 	}
 	void Room::DeferredUpdate(double elapsed)
 	{
