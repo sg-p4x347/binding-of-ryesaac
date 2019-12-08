@@ -140,6 +140,7 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <ObjectFileName>$(IntDir)%(RelativeDir)</ObjectFileName>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -180,13 +181,13 @@
     <ClCompile Include="geom\ModelMesh.cpp" />
     <ClCompile Include="geom\ModelMeshVertex.cpp" />
     <ClCompile Include="geom\ModelRepository.cpp" />
+    <ClCompile Include="geom\Rectangle.cpp" />
     <ClCompile Include="geom\Sphere.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="math\IntVec2.cpp" />
     <ClCompile Include="math\Utility.cpp" />
     <ClCompile Include="math\Vector2.cpp" />
     <ClCompile Include="math\Vector3.cpp" />
-    <ClCompile Include="Rectangle.cpp" />
     <ClCompile Include="world\Agent.cpp" />
     <ClCompile Include="world\AI.cpp" />
     <ClCompile Include="world\Collision.cpp" />
@@ -214,6 +215,7 @@
     <ClInclude Include="geom\ModelMesh.h" />
     <ClInclude Include="geom\ModelMeshVertex.h" />
     <ClInclude Include="geom\ModelRepository.h" />
+    <ClInclude Include="geom\Rectangle.h" />
     <ClInclude Include="geom\Sphere.h" />
     <ClInclude Include="math\IntVec2.h" />
     <ClInclude Include="math\Matrix.h" />
@@ -221,7 +223,6 @@
     <ClInclude Include="math\Vector2.h" />
     <ClInclude Include="math\Vector3.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="Rectangle.h" />
     <ClInclude Include="world\Agent.h" />
     <ClInclude Include="world\AI.h" />
     <ClInclude Include="world\Collision.h" />
