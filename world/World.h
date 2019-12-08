@@ -27,6 +27,7 @@ namespace world {
 			return (left.X + k_maxIntRoot / 2) + left.Y * k_maxIntRoot < (right.X + k_maxIntRoot / 2) + right.Y * k_maxIntRoot;
 		}
 	};
+	
 	class World
 	{
 	public:
@@ -37,19 +38,32 @@ namespace world {
 
 		void Update();
 		void Render();
-		void PlayerUpdate(double elapsed);
+		
 
 		void UpdateKeyState(char key, bool state);
 		void UpdateSpecialKeyState(int key, bool state);
 		void UpdateMousePosition(Vector2 position);
 	private:
 		//----------------------------------------------------------------
-		// Local graph operations
-		shared_ptr<GraphNode<Room>> UpdateCurrentNode(Vector3 focus);
+		// Local room graph operations
+
+		// Get the room node containing the given world coordinate
+		shared_ptr<GraphNode<Room>> GetContainingNode(Vector3 worldPosition);
+		// Get the room node coordinate containing the given world coordinate
 		IntVec2 GetUnitPosition(Vector3 worldPosition);
-		/* Searches adjacent nodes for a door with the specified position,
-		and updates it's state accordingly */
-		void UpdateDoorState(Vector3 position, Door door);
+
+		//----------------------------------------------------------------
+		// World systems
+
+		// Synchronizes adjacent nodes' door states with the current node's door states
+		void DoorUpdate(double elpased);
+		// Ensures that all doors are closed while in combat
+		void CombatUpdate(double elapsed);
+		// Convert user input into agent states
+		void PlayerUpdate(double elapsed);
+		// Control enemy agents
+		void AiUpdate(double elapsed);
+
 		//----------------------------------------------------------------
 		// Generation
 		bool Occupied(IntVec2 position,  map<IntVec2, RoomGenerationUnit, IntVec2Comparer>& map);

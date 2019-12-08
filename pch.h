@@ -36,6 +36,9 @@ using std::pair;
 #include <filesystem>
 using std::filesystem::path;
 
+#include <functional>
+using std::function;
+
 #include <time.h>
 #include <algorithm>
 #include <cmath>

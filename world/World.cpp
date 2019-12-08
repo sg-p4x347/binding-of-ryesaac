@@ -28,15 +28,16 @@ using math::PI;
 namespace world {
 	const float World::k_tileSize = 1.f;
 	const IntVec2 World::k_roomUnitSize = IntVec2(14,8);
-	const int World::k_maxRoomUnits = 1;
+	const int World::k_maxRoomUnits = 2;
 	const int World::k_minRoomUnits = 1;
 	const int World::k_maxBranchingSize = 8;
 	
-	const int World::k_roomCount = 2;
-	const Vector3 World::k_cameraOffset = Vector3(0.f, 8.f, -4.f);
+	const int World::k_roomCount = 20;
+	//const Vector3 World::k_cameraOffset = Vector3(0.f, 8.f, -4.f);
+	//const Vector3 World::k_cameraOffset = Vector3(0.f, 1.f, -1.f);
+	const Vector3 World::k_cameraOffset = Vector3(0.f, 3.f, -3.f);
 
 	const float World::k_toasterProbability = 0.01f;
-	//const Vector3 World::k_cameraOffset = Vector3(0.f, 1.f, -1.f);
 	World::World()
 	{
 	}
@@ -44,7 +45,7 @@ namespace world {
 	void World::Generate()
 	{
 		// Seed the RNG with the current time for different results on every run
-		//srand(time(NULL));
+		srand(time(NULL));
 		int roomCount = 0;
 
 
@@ -53,11 +54,13 @@ namespace world {
 		roomCount++;
 		seed->Data.GetER().CreateEntity(
 			Player(),
-			Agent(Agent::AgentFaction::Bread,8.f,1,0.5f,2.f,1),
+			Agent(Agent::AgentFaction::Bread,8.f,10,0.5f,1.f,0),
 			Movement(),
 			Position(Vector3(0.f,0.f,0.f), Vector3()),
-			Model(ModelRepository::Get("sphere")),
-			Collision(std::make_shared<Sphere>(Vector3::Zero, 0.25f))
+			Model(ModelRepository::Get("ryesaac")),
+			Collision(std::make_shared<Sphere>(Vector3::Zero, 0.25f),
+				(uint32_t)CollisionChannel::Door | (uint32_t)CollisionChannel::Projectile
+			)
 		);
 
 		map<IntVec2, RoomGenerationUnit, IntVec2Comparer> roomUnits;
@@ -216,7 +219,7 @@ namespace world {
 			if (facing.LengthSquared() > 0.f) {
 				facing.Normalize();
 				// Rotate the player
-				position.Rot.Y = std::atan2(facing.Z, facing.X);
+				position.Rot.Y = -std::atan2(facing.Z, facing.X);
 				// An arrow key is pressed, start attacking
 				agent.Attack = true;
 			}
@@ -225,12 +228,29 @@ namespace world {
 				agent.Attack = false;
 			}
 		}
-		m_nextCurrentNode = UpdateCurrentNode(playerPosition);
+		m_nextCurrentNode = GetContainingNode(playerPosition);
 		if (playerID && m_nextCurrentNode && m_currentNode != m_nextCurrentNode) {
 			// Remove the player from this node and place them in the new current node
 			EntityRepository::Copy(playerID, m_currentNode->Data.GetER(), m_nextCurrentNode->Data.GetER());
 			
 			m_removedEntities.push_back(playerID);
+		}
+	}
+
+	void World::AiUpdate(double elapsed)
+	{
+		for (auto& playerEntity : m_currentNode->Data.GetER().GetIterator<Player, Agent, Position>()) {
+			auto& player = playerEntity.Get<Agent>();
+			auto& playerPos = playerEntity.Get<Position>();
+
+			for (auto& enemyEntity : m_currentNode->Data.GetER().GetIterator<Agent, Position>()) {
+				auto& enemy = enemyEntity.Get<Agent>();
+				auto& enemyPos = enemyEntity.Get<Position>();
+				if (enemy.Faction != player.Faction) {
+					enemy.Heading = playerPos.Pos - enemyPos.Pos;
+					enemyPos.Rot.Y = -std::atan2f(enemy.Heading.Z, enemy.Heading.X);
+				}
+			}
 		}
 	}
 
@@ -243,21 +263,27 @@ namespace world {
 		double frequency = double(current.QuadPart);
 
 		QueryPerformanceCounter(&current);
-		double elapsed = (current.QuadPart - m_lastUpdate.QuadPart) / frequency;
+		double elapsed = min(1.0 / 60.0,(current.QuadPart - m_lastUpdate.QuadPart) / frequency);
 		m_lastUpdate = current;
+
 		// Perform world system updates
 		PlayerUpdate(elapsed);
+		CombatUpdate(elapsed);
+		DoorUpdate(elapsed);
+		AiUpdate(elapsed);
 
 		// Perform room system updates in the current room and adjacent rooms
 		m_currentNode->Data.Update(elapsed);
 		for (auto& adjacentNode : m_currentNode->AdjacentNodes)
 			adjacentNode->Data.Update(elapsed);
 		
-		// Update the current node and perform post-update actions
+		// Remove unwanted entities
 		for (auto& id : m_removedEntities) {
 			m_currentNode->Data.GetER().Remove(id);
 		}
 		m_removedEntities.clear();
+
+		// Update the current node
 		if (m_nextCurrentNode)
 			m_currentNode = m_nextCurrentNode;
 	}
@@ -276,14 +302,12 @@ namespace world {
 	{
 
 	}
-	shared_ptr<GraphNode<Room>> World::UpdateCurrentNode(Vector3 focus)
+	shared_ptr<GraphNode<Room>> World::GetContainingNode(Vector3 worldPosition)
 	{
-		IntVec2 unitFocus = GetUnitPosition(focus);
+		IntVec2 unitFocus = GetUnitPosition(worldPosition);
 		auto it = m_roomMap.find(unitFocus);
 		if (it != m_roomMap.end()) {
-			if (it->second != m_currentNode) {
-				return it->second;
-			}
+			return it->second;
 		}
 		return nullptr;
 	}
@@ -292,16 +316,40 @@ namespace world {
 		return IntVec2(round(worldPosition.X / (k_roomUnitSize.X * k_tileSize)), round(worldPosition.Z / (k_roomUnitSize.Y * k_tileSize)));
 	}
 
-	void World::UpdateDoorState(Vector3 position, Door door)
+	void World::DoorUpdate(double elapsed)
 	{
-		for (auto& adjacentNode : m_currentNode->AdjacentNodes) {
-			for (auto& entity : adjacentNode->Data.GetER().GetIterator<Door, Position>()) {
-				auto& adjacentDoor = entity.Get<Door>();
-				auto& adjacentPosition = entity.Get<Position>();
-				if (adjacentPosition.Pos == position) {
-					adjacentDoor.State = door.State;
+		for (auto entity : m_currentNode->Data.GetER().GetIterator<Door, Position>()) {
+			auto& door = entity.Get<Door>();
+			auto& position = entity.Get<Position>();
+			for (auto& adjacentNode : m_currentNode->AdjacentNodes) {
+				for (auto& entity : adjacentNode->Data.GetER().GetIterator<Door, Position>()) {
+					auto& adjacentDoor = entity.Get<Door>();
+					auto& adjacentPosition = entity.Get<Position>();
+					if (adjacentPosition.Pos == position.Pos) {
+						adjacentDoor.State = door.State;
+					}
 				}
 			}
+		}
+	}
+
+	void World::CombatUpdate(double elapsed)
+	{
+		// While there are enemy agents in the room, keep the doors closed
+		for (auto& agent : m_currentNode->Data.GetER().GetIterator<Agent>()) {
+			if (agent.Get<Agent>().Faction != Agent::AgentFaction::Bread) {
+				// Close all the doors if they are open
+				for (auto& door : m_currentNode->Data.GetER().GetIterator<Door>()) {
+					if (door.Get<Door>().State == Door::DoorState::Open)
+						door.Get<Door>().State = Door::DoorState::Closed;
+				}
+				return;
+			}
+		}
+		// not in combat - Open all the non-locked doors
+		for (auto& door : m_currentNode->Data.GetER().GetIterator<Door>()) {
+			if (door.Get<Door>().State == Door::DoorState::Closed)
+				door.Get<Door>().State = Door::DoorState::Open;
 		}
 	}
 	
@@ -410,22 +458,12 @@ namespace world {
 									Model(ModelRepository::Get("doorway_" + std::to_string((int)door.Type)))
 								);
 								// Door
-								Model model = Model(ModelRepository::Get("door_" + std::to_string((int)door.State)));
-								if (door.State == Door::DoorState::Open) {
-									room.GetER().CreateEntity(
-										door,
-										position,
-										model
-									);
-								}
-								else {
-									room.GetER().CreateEntity(
-										door,
-										position,
-										model,
-										Collision(geom::CreateBox(Vector3::Zero, Vector3(1.f, 1.f, 1.f)))
-									);
-								}
+								room.GetER().CreateEntity(
+									door,
+									position,
+									Model(nullptr),
+									Collision(geom::CreateBox(Vector3::Zero, Vector3(1.f, 1.f, 1.f)))
+								);
 							}
 						}
 					}

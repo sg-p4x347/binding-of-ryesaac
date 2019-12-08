@@ -25,6 +25,8 @@ namespace world {
 		AgentUpdate(elapsed);
 		MovementUpdate(elapsed);
 		CollisionUpdate(elapsed);
+		DoorUpdate(elapsed);
+		DeferredUpdate(elapsed);
 	}
 
 	void Room::Render()
@@ -37,6 +39,7 @@ namespace world {
 
 				glPushMatrix();
 				glEnable(GL_TEXTURE_2D);
+				
 				glBindTexture(GL_TEXTURE_2D,TextureRepository::GetID(modelComp.ModelPtr->Name));
 				glTranslatef(position.Pos.X, position.Pos.Y, position.Pos.Z);
 				glRotatef(math::RadToDeg(position.Rot.X), 1.f, 0.f, 0.f);
@@ -69,7 +72,6 @@ namespace world {
 
 	void Room::AgentUpdate(double elapsed)
 	{
-		set<ecs::EntityID> dead;
 		for (auto& entity : ER.GetIterator<Agent, Model, Movement, Collision, Position>()) {
 			auto& agent = entity.Get<Agent>();
 			auto& model = entity.Get<Model>();
@@ -88,7 +90,7 @@ namespace world {
 			agent.RecoveryCooldown = std::max(0.0, agent.RecoveryCooldown - elapsed);
 			// Strobe the model while in cooldown
 			if (agent.RecoveryCooldown) {
-				static const float k_recoveryFlashPeriod = 1.f;
+				static const float k_recoveryFlashPeriod = 0.25f;
 				model.Hidden = std::fmodf(agent.RecoveryCooldown, k_recoveryFlashPeriod) <= k_recoveryFlashPeriod * 0.5f;
 			}
 			else {
@@ -105,20 +107,25 @@ namespace world {
 					projectileModel = ModelRepository::Get("butter");
 					break;
 				}
-				Agent projectile = Agent(agent.Faction, 16.f, 0, 0.f, 0.f, 1);
-				projectile.Heading = Vector3(std::cos(position.Rot.Y), 0.f, std::sin(position.Rot.Y));
-				ER.CreateEntity(
-					Position(position.Pos + projectile.Heading, position.Rot),
-					projectile,
-					Movement(),
-					Collision(std::make_shared<geom::Sphere>(Vector3::Zero, 0.25), false),
-					Model(projectileModel)
-				);
+				
+				m_deferredTasks.push_back([=] {
+					Agent projectile = Agent(agent.Faction, 16.f, 0, 0.f, 0.f, 1);
+					projectile.Heading = Vector3(std::cos(-position.Rot.Y), 0.f, std::sin(-position.Rot.Y));
+					ER.CreateEntity(
+						Position(position),
+						projectile,
+						Movement(),
+						Collision(std::make_shared<geom::Sphere>(Vector3::Zero, 0.25), (uint32_t)CollisionChannel::Projectile),
+						Model(projectileModel)
+					);
+				});
 				agent.AttackCooldown = agent.AttackPeriod;
 			}
 			if (agent.MaxHealth > 0) {
 				if (agent.Health <= 0) {
-					dead.insert(agent.ID);
+					m_deferredTasks.push_back([=] {
+						ER.Remove(agent.ID);
+					});
 				}
 				else {
 					// Apply damage if not in recovery (temporary invincibility after taking damage)
@@ -142,13 +149,12 @@ namespace world {
 			}
 			else {
 				if (!collision.Contacts.empty()) {
-					dead.insert(agent.ID);
+					m_deferredTasks.push_back([=] {
+						ER.Remove(agent.ID);
+					});
 				}
 			}
 		}
-		// Remove all dead agents
-		for (auto& id : dead)
-			ER.Remove(id);
 	}
 
 	void Room::AiUpdate(double elapsed)
@@ -166,17 +172,27 @@ namespace world {
 	}
 	void Room::CollisionUpdate(double elapsed)
 	{
+		// Clear contacts
+		for (auto& collider : ER.GetIterator<Collision>()) {
+			collider.Get<Collision>().Contacts.clear();
+		}
+
 		for (auto& dynamicCollider : ER.GetIterator<Movement,Collision, Position>()) {
 			auto& movement = dynamicCollider.Get<Movement>();
 			auto& dynamicCollision = dynamicCollider.Get<Collision>();
 			auto& dynamicPosition = dynamicCollider.Get<Position>();
-			dynamicCollision.Contacts.clear();
 			auto dynamicCollisionVolume = dynamicCollision.CollisionVolume->Transform(dynamicPosition.GetTransform());
 			for (auto& staticCollider : ER.GetIterator<Collision, Position>()) {
 				auto& staticCollision = staticCollider.Get<Collision>();
 				auto& staticPosition = staticCollider.Get<Position>();
-				if (staticCollision.ID != dynamicCollision.ID && (staticPosition.Pos - dynamicPosition.Pos).LengthSquared() < k_collisionCullRange * k_collisionCullRange) {
-					staticCollision.Contacts.clear();
+				if (
+					// Only handle collisions between disjoint channels
+					!(dynamicCollision.Channel & staticCollision.Channel)
+					// Don't collide with ourself
+					&& staticCollision.ID != dynamicCollision.ID 
+					// Be within a sane range
+					&& (staticPosition.Pos - dynamicPosition.Pos).LengthSquared() < k_collisionCullRange * k_collisionCullRange
+					) {
 					auto staticCollisionVolume = staticCollision.CollisionVolume->Transform(staticPosition.GetTransform());
 					// Use GJK to test if an intersection exists
 					geom::GjkIntersection intersection;
@@ -185,20 +201,53 @@ namespace world {
 						Collision::Contact contact;
 						if (geom::EPA(*dynamicCollisionVolume, *staticCollisionVolume, intersection, contact)) {
 							// Immediately correct the position in the X-Z plane
-							if (dynamicCollision.HandlePenetration) {
-								dynamicPosition.Pos.X += contact.Normal.X * contact.PenetrationDepth;
-								dynamicPosition.Pos.Z += contact.Normal.Z * contact.PenetrationDepth;
-								// Update collision volume
-								dynamicCollisionVolume = dynamicCollision.CollisionVolume->Transform(dynamicPosition.GetTransform());
-							}
-							// Register contacts
+							dynamicPosition.Pos.X += contact.Normal.X * contact.PenetrationDepth;
+							dynamicPosition.Pos.Z += contact.Normal.Z * contact.PenetrationDepth;
+							// Update collision volume
+							dynamicCollisionVolume = dynamicCollision.CollisionVolume->Transform(dynamicPosition.GetTransform());
+							
+							// Register contacts on both colliders
 							contact.Collider = staticCollision.ID;
 							dynamicCollision.Contacts.push_back(contact);
 
+							contact.Collider = dynamicCollision.ID;
+							staticCollision.Contacts.push_back(contact);
 						}
 					}
 				}
 			}
 		}
+	}
+
+	void Room::DoorUpdate(double elapsed)
+	{
+		for (auto& entity : ER.GetIterator<Door, Model, Collision>()) {
+			auto& door = entity.Get<Door>();
+			auto& model = entity.Get<Model>();
+			auto& collision = entity.Get<Collision>();
+
+			// Update model
+			model.ModelPtr = ModelRepository::Get("door_" + std::to_string((int)door.State));
+
+			/* Update collision channel
+			 As long as the player shares this channel, collision will not be handled */
+			switch (door.State) {
+			case Door::DoorState::Closed:
+			case Door::DoorState::Locked:
+				collision.Channel = 0;
+				break;
+			case Door::DoorState::Open:
+				collision.Channel = (uint32_t)CollisionChannel::Door;
+				break;
+			}
+
+		}
+	}
+	void Room::DeferredUpdate(double elapsed)
+	{
+		for (auto& task : m_deferredTasks) {
+			task();
+		}
+		m_deferredTasks.clear();
 	}
 }

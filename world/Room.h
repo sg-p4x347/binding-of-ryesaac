@@ -22,6 +22,11 @@ namespace world {
 		AI
 	> EntityRepository;
 
+	enum class CollisionChannel {
+		Door = 1,
+		Projectile = 2
+	};
+
 	class Room
 	{
 	public:
@@ -34,8 +39,11 @@ namespace world {
 		void AiUpdate(double elapsed);
 		void MovementUpdate(double elapsed);
 		void CollisionUpdate(double elapsed);
+		void DoorUpdate(double elapsed);
+		void DeferredUpdate(double elapsed);
 	private:
 		EntityRepository ER;
 		static const float k_collisionCullRange;
+		vector<function<void()>> m_deferredTasks;
 	};
 }
