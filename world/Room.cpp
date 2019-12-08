@@ -15,7 +15,7 @@ using tex::TextureRepository;
 
 namespace world {
 	const float Room::k_collisionCullRange = 1.5f;
-	Room::Room()
+	Room::Room(Vector3 center) : m_center(center), m_inCombat(false)
 	{
 	}
 
@@ -25,6 +25,10 @@ namespace world {
 		AgentUpdate(elapsed);
 		MovementUpdate(elapsed);
 		CollisionUpdate(elapsed);
+		DoorUpdate(elapsed);
+		CombatUpdate(elapsed);
+		ItemUpdate(elapsed);
+		DeferredUpdate(elapsed);
 	}
 
 	void Room::Render()
@@ -33,16 +37,16 @@ namespace world {
 		for (auto& entity : ER.GetIterator<Model, Position>()) {
 			Position& position = entity.Get<Position>();
 			Model& modelComp = entity.Get<Model>();
-			if (modelComp.ModelPtr) {
+			if (!modelComp.Hidden && modelComp.ModelPtr) {
 
 				glPushMatrix();
 				glEnable(GL_TEXTURE_2D);
+				
 				glBindTexture(GL_TEXTURE_2D,TextureRepository::GetID(modelComp.ModelPtr->Name));
 				glTranslatef(position.Pos.X, position.Pos.Y, position.Pos.Z);
 				glRotatef(math::RadToDeg(position.Rot.X), 1.f, 0.f, 0.f);
 				glRotatef(math::RadToDeg(position.Rot.Y), 0.f, 1.f, 0.f);
 				glRotatef(math::RadToDeg(position.Rot.Z), 0.f, 0.f, 1.f);
-
 
 				geom::Model& model = *modelComp.ModelPtr;
 				for (auto& mesh : model.Meshes) {
@@ -53,12 +57,10 @@ namespace world {
 						glNormal3f(vertex.Normal.X, vertex.Normal.Y, vertex.Normal.Z);
 						glTexCoord2f(vertex.TextureCoordinate.X, vertex.TextureCoordinate.Y);
 						glVertex3f(vertex.Position.X, vertex.Position.Y, vertex.Position.Z);
-
 					}
 					glEnd();
 				}
 				glBindTexture(GL_TEXTURE_2D, 0);
-
 
 				glPopMatrix();
 			}
@@ -70,11 +72,36 @@ namespace world {
 		return ER;
 	}
 
+	void Room::AddLoot(LootItem item)
+	{
+		m_loot.push_back(item);
+	}
+
+	void Room::DropLoot()
+	{
+		for (auto& loot : m_loot) {
+			string modelName = "";
+			switch (loot) {
+			case LootItem::Key: modelName = "key"; break;
+			}
+			m_deferredTasks.push_back([=] {
+				ER.CreateEntity(
+					Position(m_center, Vector3::Zero),
+					Model(ModelRepository::Get(modelName)),
+					Collision(std::make_shared<geom::Sphere>(Vector3::Zero, 0.25f)),
+					Item(loot)
+				);
+			});
+		}
+		// Consume the loot
+		m_loot.clear();
+	}
+
 	void Room::AgentUpdate(double elapsed)
 	{
-		set<ecs::EntityID> dead;
-		for (auto& entity : ER.GetIterator<Agent, Movement, Collision, Position>()) {
+		for (auto& entity : ER.GetIterator<Agent, Model, Movement, Collision, Position>()) {
 			auto& agent = entity.Get<Agent>();
+			auto& model = entity.Get<Model>();
 			auto& movement = entity.Get<Movement>();
 			auto& collision = entity.Get<Collision>();
 			auto& position = entity.Get<Position>();
@@ -88,6 +115,14 @@ namespace world {
 			
 			// Update recovery cooldown
 			agent.RecoveryCooldown = std::max(0.0, agent.RecoveryCooldown - elapsed);
+			// Strobe the model while in cooldown
+			if (agent.RecoveryCooldown) {
+				static const float k_recoveryFlashPeriod = 0.25f;
+				model.Hidden = std::fmodf(agent.RecoveryCooldown, k_recoveryFlashPeriod) <= k_recoveryFlashPeriod * 0.5f;
+			}
+			else {
+				model.Hidden = false;
+			}
 
 			if (agent.Attack && !agent.AttackCooldown) {
 				shared_ptr<geom::Model> projectileModel;
@@ -99,20 +134,25 @@ namespace world {
 					projectileModel = ModelRepository::Get("butter");
 					break;
 				}
-				Agent projectile = Agent(agent.Faction, 16.f, 0, 0.f, 0.f, 1);
-				projectile.Heading = Vector3(std::cos(position.Rot.Y), 0.f, std::sin(position.Rot.Y));
-				ER.CreateEntity(
-					Position(position.Pos + projectile.Heading, position.Rot),
-					projectile,
-					Movement(),
-					Collision(std::make_shared<geom::Sphere>(Vector3::Zero, 0.25), false),
-					Model(projectileModel)
-				);
+				
+				m_deferredTasks.push_back([=] {
+					Agent projectile = Agent(agent.Faction, 8.f, 0, 0.f, 0.f, 1);
+					projectile.Heading = Vector3(std::cos(-position.Rot.Y), 0.f, std::sin(-position.Rot.Y));
+					ER.CreateEntity(
+						Position(position),
+						projectile,
+						Movement(),
+						Collision(std::make_shared<geom::Sphere>(Vector3::Zero, 0.25), (uint32_t)CollisionChannel::Projectile),
+						Model(projectileModel)
+					);
+				});
 				agent.AttackCooldown = agent.AttackPeriod;
 			}
 			if (agent.MaxHealth > 0) {
 				if (agent.Health <= 0) {
-					dead.insert(agent.ID);
+					m_deferredTasks.push_back([=] {
+						ER.Remove(agent.ID);
+					});
 				}
 				else {
 					// Apply damage if not in recovery (temporary invincibility after taking damage)
@@ -136,17 +176,29 @@ namespace world {
 			}
 			else {
 				if (!collision.Contacts.empty()) {
-					dead.insert(agent.ID);
+					m_deferredTasks.push_back([=] {
+						ER.Remove(agent.ID);
+					});
 				}
 			}
 		}
-		// Remove all dead agents
-		for (auto& id : dead)
-			ER.Remove(id);
 	}
 
 	void Room::AiUpdate(double elapsed)
 	{
+		for (auto& playerEntity : ER.GetIterator<Player, Agent, Position>()) {
+			auto& player = playerEntity.Get<Agent>();
+			auto& playerPos = playerEntity.Get<Position>();
+
+			for (auto& enemyEntity : ER.GetIterator<Agent, Position>()) {
+				auto& enemy = enemyEntity.Get<Agent>();
+				auto& enemyPos = enemyEntity.Get<Position>();
+				if (enemy.Faction != player.Faction) {
+					enemy.Heading = playerPos.Pos - enemyPos.Pos;
+					enemyPos.Rot.Y = -std::atan2f(enemy.Heading.Z, enemy.Heading.X);
+				}
+			}
+		}
 	}
 
 	void Room::MovementUpdate(double elapsed)
@@ -160,17 +212,27 @@ namespace world {
 	}
 	void Room::CollisionUpdate(double elapsed)
 	{
+		// Clear contacts
+		for (auto& collider : ER.GetIterator<Collision>()) {
+			collider.Get<Collision>().Contacts.clear();
+		}
+
 		for (auto& dynamicCollider : ER.GetIterator<Movement,Collision, Position>()) {
 			auto& movement = dynamicCollider.Get<Movement>();
 			auto& dynamicCollision = dynamicCollider.Get<Collision>();
 			auto& dynamicPosition = dynamicCollider.Get<Position>();
-			dynamicCollision.Contacts.clear();
 			auto dynamicCollisionVolume = dynamicCollision.CollisionVolume->Transform(dynamicPosition.GetTransform());
 			for (auto& staticCollider : ER.GetIterator<Collision, Position>()) {
 				auto& staticCollision = staticCollider.Get<Collision>();
 				auto& staticPosition = staticCollider.Get<Position>();
-				if (staticCollision.ID != dynamicCollision.ID && (staticPosition.Pos - dynamicPosition.Pos).LengthSquared() < k_collisionCullRange * k_collisionCullRange) {
-					staticCollision.Contacts.clear();
+				if (
+					// Only handle collisions between disjoint channels
+					!(dynamicCollision.Channel & staticCollision.Channel)
+					// Don't collide with ourself
+					&& staticCollision.ID != dynamicCollision.ID 
+					// Be within a sane range
+					&& (staticPosition.Pos - dynamicPosition.Pos).LengthSquared() < k_collisionCullRange * k_collisionCullRange
+					) {
 					auto staticCollisionVolume = staticCollision.CollisionVolume->Transform(staticPosition.GetTransform());
 					// Use GJK to test if an intersection exists
 					geom::GjkIntersection intersection;
@@ -179,20 +241,117 @@ namespace world {
 						Collision::Contact contact;
 						if (geom::EPA(*dynamicCollisionVolume, *staticCollisionVolume, intersection, contact)) {
 							// Immediately correct the position in the X-Z plane
-							if (dynamicCollision.HandlePenetration) {
-								dynamicPosition.Pos.X += contact.Normal.X * contact.PenetrationDepth;
-								dynamicPosition.Pos.Z += contact.Normal.Z * contact.PenetrationDepth;
-								// Update collision volume
-								dynamicCollisionVolume = dynamicCollision.CollisionVolume->Transform(dynamicPosition.GetTransform());
-							}
-							// Register contacts
+							dynamicPosition.Pos.X += contact.Normal.X * contact.PenetrationDepth;
+							dynamicPosition.Pos.Z += contact.Normal.Z * contact.PenetrationDepth;
+							// Update collision volume
+							dynamicCollisionVolume = dynamicCollision.CollisionVolume->Transform(dynamicPosition.GetTransform());
+							
+							// Register contacts on both colliders
 							contact.Collider = staticCollision.ID;
 							dynamicCollision.Contacts.push_back(contact);
 
+							contact.Collider = dynamicCollision.ID;
+							staticCollision.Contacts.push_back(contact);
 						}
 					}
 				}
 			}
 		}
+	}
+
+	void Room::DoorUpdate(double elapsed)
+	{
+		for (auto& entity : ER.GetIterator<Door, Model, Collision>()) {
+			auto& door = entity.Get<Door>();
+			auto& model = entity.Get<Model>();
+			auto& collision = entity.Get<Collision>();
+
+			if (door.State == Door::DoorState::Locked) {
+				for (auto& playerEntity : ER.GetIterator<Player, Collision>()) {
+					auto& player = playerEntity.Get<Player>();
+					if (player.Inventory[LootItem::Key] > 0) {
+						for (auto& contact : playerEntity.Get<Collision>().Contacts) {
+							if (contact.Collider == door.ID) {
+								// unlock the door
+								door.State = Door::DoorState::Open;
+								// consume the key
+								player.Inventory[LootItem::Key]--;
+								goto updateState;
+							}
+						}
+					}
+				}
+			}
+			updateState:
+
+			// Update model
+			model.ModelPtr = ModelRepository::Get("door_" + std::to_string((int)door.State));
+
+			/* Update collision channel
+			 As long as the player shares this channel, collision will not be handled */
+			switch (door.State) {
+			case Door::DoorState::Closed:
+			case Door::DoorState::Locked:
+				collision.Channel = 0;
+				break;
+			case Door::DoorState::Open:
+				collision.Channel = (uint32_t)CollisionChannel::Door;
+				break;
+			}
+
+
+		}
+	}
+	void Room::CombatUpdate(double elapsed)
+	{
+		bool previousCombatState = m_inCombat;
+		// While there are enemy agents in the room, keep the doors closed
+		for (auto& agent : ER.GetIterator<Agent>()) {
+			if (agent.Get<Agent>().Faction != Agent::AgentFaction::Bread) {
+				// Close all the doors if they are open
+				m_inCombat = true;
+				for (auto& door : ER.GetIterator<Door>()) {
+					if (door.Get<Door>().State == Door::DoorState::Open)
+						door.Get<Door>().State = Door::DoorState::Closed;
+				}
+				return;
+			}
+		}
+		// not in combat - Open all the non-locked doors
+		m_inCombat = false;
+		for (auto& door : ER.GetIterator<Door>()) {
+			if (door.Get<Door>().State == Door::DoorState::Closed)
+				door.Get<Door>().State = Door::DoorState::Open;
+		}
+		// Drop loot if the combat state has dropped to false
+		if (previousCombatState && !m_inCombat) {
+			DropLoot();
+		}
+	}
+	void Room::ItemUpdate(double elapsed)
+	{
+		for (auto& playerEntity : ER.GetIterator<Player, Collision>()) {
+			auto& player = playerEntity.Get<Player>();
+			for (auto& contact : playerEntity.Get<Collision>().Contacts) {
+				for (auto& entity : ER.GetIterator<Item>()) {
+					auto& item = entity.Get<Item>();
+					if (item.ID == contact.Collider) {
+						// Perform the transaction
+						player.Inventory[item.Type]++;
+						m_deferredTasks.push_back([=] {
+							ER.Remove(item.ID);
+						});
+					}
+				}
+			}
+		}
+		
+	}
+	void Room::DeferredUpdate(double elapsed)
+	{
+		for (auto& task : m_deferredTasks) {
+			task();
+		}
+		m_deferredTasks.clear();
 	}
 }

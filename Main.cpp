@@ -80,8 +80,7 @@ int main(int argc, char** argv) {
 }
 
 void initialize() {
-	// specify a background clor: white
-	glClearColor(1, 1, 1, 1);
+	glClearColor(0,0,0, 1);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
 	glClearDepth(1.0f);                 // Set background depth to farthest
 	glEnable(GL_NORMALIZE);

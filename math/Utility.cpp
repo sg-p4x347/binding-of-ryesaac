@@ -52,6 +52,10 @@ namespace math {
 	{
 		return min + (max - min) * (float)std::rand() / RAND_MAX;
 	}
+	float RandWithin(double min, float max)
+	{
+		return min + (max - min) * (double)std::rand() / RAND_MAX;
+	}
 	int RandWithin(int min, int max)
 	{
 		return min + std::rand() % (1 + max - min);

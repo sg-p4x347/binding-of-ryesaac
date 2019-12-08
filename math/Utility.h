@@ -24,6 +24,8 @@ namespace math {
 	// inclusive
 	float RandWithin(float min = 0.f, float max = 1.f);
 	// inclusive
+	float RandWithin(double min = 0.0, float max = 1.0);
+	// inclusive
 	int RandWithin(int min, int max);
 
 	bool Chance(float probability);

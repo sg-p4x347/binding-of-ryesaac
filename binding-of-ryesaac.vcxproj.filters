@@ -88,12 +88,9 @@
     <ClCompile Include="geom\Sphere.cpp">
       <Filter>Geometry</Filter>
     </ClCompile>
-    <ClCompile Include="world\Collision.cpp" />
     <ClCompile Include="math\IntVec2.cpp">
       <Filter>Math</Filter>
     </ClCompile>
-    <ClCompile Include="world\Door.cpp" />
-    <ClCompile Include="Rectangle.cpp" />
     <ClCompile Include="world\AI.cpp">
       <Filter>World</Filter>
     </ClCompile>
@@ -102,6 +99,21 @@
     </ClCompile>
     <ClCompile Include="game\MultimediaPlayer.cpp">
       <Filter>Game</Filter>
+    </ClCompile>
+    <ClCompile Include="geom\Rectangle.cpp">
+      <Filter>Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="world\RoomLink.cpp">
+      <Filter>World</Filter>
+    </ClCompile>
+    <ClCompile Include="world\Collision.cpp">
+      <Filter>World</Filter>
+    </ClCompile>
+    <ClCompile Include="world\Door.cpp">
+      <Filter>World</Filter>
+    </ClCompile>
+    <ClCompile Include="world\Item.cpp">
+      <Filter>World</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -196,7 +208,6 @@
     <ClInclude Include="math\IntVec2.h">
       <Filter>Math</Filter>
     </ClInclude>
-    <ClInclude Include="Rectangle.h" />
     <ClInclude Include="world\AI.h">
       <Filter>World</Filter>
     </ClInclude>
@@ -205,6 +216,18 @@
     </ClInclude>
     <ClInclude Include="game\MultimediaPlayer.h">
       <Filter>Game</Filter>
+    </ClInclude>
+    <ClInclude Include="geom\Rectangle.h">
+      <Filter>Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="world\RoomLink.h">
+      <Filter>World</Filter>
+    </ClInclude>
+    <ClInclude Include="world\LootItem.h">
+      <Filter>World</Filter>
+    </ClInclude>
+    <ClInclude Include="world\Item.h">
+      <Filter>World</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

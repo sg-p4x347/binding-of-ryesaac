@@ -5,7 +5,7 @@ namespace world {
 	Collision::Collision()
 	{
 	}
-	Collision::Collision(shared_ptr<geom::CollisionVolume> collisionVolume, bool handlePenetration) : CollisionVolume(collisionVolume), HandlePenetration(handlePenetration)
+	Collision::Collision(shared_ptr<geom::CollisionVolume> collisionVolume, uint32_t channel) : CollisionVolume(collisionVolume), Channel(channel)
 	{
 	}
 }
