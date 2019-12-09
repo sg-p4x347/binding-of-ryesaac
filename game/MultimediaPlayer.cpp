@@ -5,9 +5,9 @@ namespace game
 {
 	MultimediaPlayer::MultimediaPlayer()
 	{
-		GetInstance().setFilePath("");
-		GetInstance().setPlayASync(false);
-		GetInstance().setPlayLoop(false);
+		setFilePath("");
+		setPlayASync(false);
+		setPlayLoop(false);
 	}
 
 	void MultimediaPlayer::SetUp(string filePath, bool playASync, bool playLoop)
@@ -19,7 +19,7 @@ namespace game
 
 	MultimediaPlayer& MultimediaPlayer::GetInstance()
 	{
-		static MultimediaPlayer instance;
+		static MultimediaPlayer instance; // this is where the thread loop starts happening
 		return instance;
 	}
 

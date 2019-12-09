@@ -46,7 +46,6 @@ using tex::Bitmap;
 #include <thread>
 
 void initialize();
-void runIntro();
 void update();
 void render();
 void renderTick(int value);
@@ -71,7 +70,9 @@ int main(int argc, char** argv) {
 	glutIdleFunc(update);
 	glutDisplayFunc(render);
 
-	Game::GetInstance().GenerateWorld();
+	TextureRepository::GetInstance();
+	Sleep(2000);
+	//Game::GetInstance().GenerateWorld();
 	// Start 60 Hz frame rendering
 	glutTimerFunc(16, renderTick,0);
 	glutMainLoop();
@@ -85,16 +86,6 @@ void initialize() {
 	glClearDepth(1.0f);                 // Set background depth to farthest
 	glEnable(GL_NORMALIZE);
 	glEnable(GL_DEPTH_TEST);			// Enable depth testing for z-culling
-	glEnable(GL_LIGHTING);
-	glShadeModel(GL_SMOOTH);
-	glEnable(GL_LIGHT0);
-	float pos[]{1.f,1.f,0.f,1.f };
-	glLightfv(GL_LIGHT0, GL_POSITION, pos);
-	float white[]{ 1.f,1.f,1.f,1.f };
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, white);
-	float black[]{0.f,0.f,0.f,1.f };
-	glLightfv(GL_LIGHT0, GL_AMBIENT, black);
-
 	glFrontFace(GL_CCW);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
@@ -107,20 +98,6 @@ void initialize() {
 	
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-}
-void runIntro()
-{
-	auto introPanels = TextureRepository::GetBitmap("ogp");
-	gluOrtho2D(0, 1, 0, 1);
-	glColor3f(0, 0, 0);
-	glBegin(GL_BITMAP);
-	glRasterPos2d(0, 0);
-	glDrawPixels(introPanels->GetWidth() / 2, introPanels->GetHeight() / 2, GL_RGBA, GL_UNSIGNED_BYTE, introPanels->GetPixels());
-	glEnd();
-
-	// Set up audio
-	MultimediaPlayer::SetUp("./Assets/audio/Intro_Condesa_Vox_Overlay.wav", true, false);
-	MultimediaPlayer::GetInstance().startAudio();
 }
 void update()
 {
