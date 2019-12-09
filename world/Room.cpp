@@ -32,12 +32,12 @@ namespace world {
 		AgentUpdate(elapsed);
 		MovementUpdate(elapsed);
 		CollisionUpdate(elapsed);
-		PlayerLocationUpdate();
 		DoorUpdate(elapsed);
 		CombatUpdate(elapsed);
 		ItemUpdate(elapsed);
 		//SweepUpdate(elapsed);
 		DeferredUpdate(elapsed);
+		PlayerLocationUpdate();
 	}
 
 	void Room::Render()
@@ -364,14 +364,24 @@ namespace world {
 		for (auto& playerEntity : ER.GetIterator<Player, Collision>()) {
 			auto& player = playerEntity.Get<Player>();
 			if (m_type == RoomType::Duck) {
-				int fish = 0;
-				if (Game::GetInstance().state != GameState::InGame_BossBattle)
+				if (m_inCombat)
 				{
-					fish++;
-					Game::GetInstance().state = GameState::InGame_BossBattle;
-					Game::GetInstance().bossStart = clock();
-					MultimediaPlayer::SetUp("./Assets/audio/Boss_Battle_Condesa_DuckAttacks_Overlay.wav", true, true);
-					MultimediaPlayer::GetInstance().startAudio();
+					if (Game::GetInstance().state != GameState::InGame_BossBattle)
+					{
+						Game::GetInstance().state = GameState::InGame_BossBattle;
+						Game::GetInstance().bossStart = clock();
+						MultimediaPlayer::SetUp("./Assets/audio/Boss_Battle_Condesa_DuckAttacks_Overlay.wav", true, true);
+						MultimediaPlayer::GetInstance().startAudio();
+					}
+				}
+				else
+				{
+					if (Game::GetInstance().state != GameState::Outro)
+					{
+						Game::GetInstance().state = GameState::Outro;
+						MultimediaPlayer::SetUp("./Assets/audio/Boss_Battle_Victory.wav", true, true);
+						MultimediaPlayer::GetInstance().startAudio();
+					}
 				}
 			}
 		}

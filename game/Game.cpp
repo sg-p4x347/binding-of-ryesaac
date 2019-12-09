@@ -23,7 +23,7 @@ namespace game
 
 	void Game::keyHandler(unsigned char key, int x, int y)
 	{
-		if (GetInstance().g_world)
+		if (GetInstance().g_world && GetInstance().state != GameState::Outro && GetInstance().state != GameState::Death)
 			GetInstance().g_world->UpdateKeyState(key, true);
 		else
 		{
@@ -43,6 +43,8 @@ namespace game
 					MultimediaPlayer::SetUp("./Assets/audio/Ambience_InGame_ChiPhil.wav", true, true);
 					MultimediaPlayer::GetInstance().startAudio();
 					break;
+				case (int)GameState::Outro: case (int)GameState::Death:
+					exit(0);
 				}
 			}
 		}
@@ -129,13 +131,14 @@ namespace game
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear color and depth buffers
 
-		if (g_world) { g_world->Render(); }
+		if (g_world && state != GameState::Outro && state != GameState::Death) { g_world->Render(); }
 		else
 		{
 			Vector2 position = { 0.f, 0.f };
 			Vector2 size = { 1.f, (float)glutGet(GLUT_WINDOW_HEIGHT) / (float)glutGet(GLUT_WINDOW_WIDTH) };
 			string texture;
 			if (state == GameState::Outro) texture = "ogp_end";
+			else if (state == GameState::Death) texture = "ogp_lose";
 			else texture = slideShow[activeSlide].getTexName();
 			glLoadIdentity();
 			gluOrtho2D(0, 1, 0, (float)glutGet(GLUT_WINDOW_HEIGHT) / (float)glutGet(GLUT_WINDOW_WIDTH));
