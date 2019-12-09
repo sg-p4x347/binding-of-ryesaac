@@ -17,7 +17,7 @@ using tex::TextureRepository;
 
 namespace world {
 	const float Room::k_collisionCullRange = 1.5f;
-	Room::Room(RoomType type, Vector3 center) : m_center(center), m_type(type), m_inCombat(false)
+	Room::Room(RoomType type, Vector3 center) : m_center(center), m_type(type), m_inCombat(false), m_duck(0)
 	{
 	}
 
@@ -30,6 +30,7 @@ namespace world {
 		DoorUpdate(elapsed);
 		CombatUpdate(elapsed);
 		ItemUpdate(elapsed);
+		//SweepUpdate(elapsed);
 		DeferredUpdate(elapsed);
 	}
 
@@ -135,21 +136,56 @@ namespace world {
 		}
 		
 		Sweep sweep;
-		sweep.Duration = 2.f;
+		sweep.Duration = 6.f;
 		for (float t = 0; t <= 1; t += 1.f / 20) {
 			sweep.Waypoints.push_back(pivot + (math::CreateRotationY(angle * t) * (start - pivot)));
 		}
-		ER.CreateEntity(
-			Position(),
-			Movement(Vector3::Zero,Vector3(0.f, angle / sweep.Duration, 0.f)),
-			sweep,
-			Agent()
-		)
+		m_deferredTasks.push_back([=] {
+
+			ER.CreateEntity(
+				Position(),
+				Movement(Vector3::Zero, Vector3(0.f, angle / sweep.Duration, 0.f)),
+				Sweep(sweep),
+				Model(ModelRepository::Get("duck_head")),
+				Agent(Agent::AgentFaction::Toast, 0.f, 20, 0.f, 0.f, 1),
+				Collision(std::make_shared<geom::Sphere>(Vector3::Zero, 1.f))
+			);
+		
+		});
 	}
 
-	void Room::SweepAttack(Vector3 pivot, Vector3 start, Vector3 end)
+	ecs::EntityID Room::CreateDuck()
 	{
+		return ER.CreateEntity(
+			Position(Vector3::Zero, Vector3(0.f, math::PI, 0.f)),
+			Sweep(),
+			Model(ModelRepository::Get("duck_head")),
+			Agent(Agent::AgentFaction::Toast, 0.f, 20, 0.f, 0.f, 1),
+			Collision(std::make_shared<geom::Sphere>(Vector3::Zero, 1.f))
+		);
 	}
+
+	void Room::StompAttack(Vector2 focus)
+	{
+		m_deferredTasks.push_back([=] {
+			if (!m_duck) {
+				m_duck = CreateDuck();
+			}
+			for (auto& entity : ER.GetIterator<Sweep>()) {
+				auto& sweep = entity.Get<Sweep>();
+				if (sweep.ID == m_duck) {
+					sweep.Duration = 6.f;
+					static float start = 4.f;
+					sweep.Waypoints.push_back(Vector3(focus.X, start, focus.Y));
+					sweep.Waypoints.push_back(Vector3(focus.X, 0.f, focus.Y));
+					sweep.Waypoints.push_back(Vector3(focus.X, 0.f, focus.Y));
+					sweep.Waypoints.push_back(Vector3(focus.X, start, focus.Y));
+				}
+			}
+
+		});
+	}
+
 
 	void Room::AgentUpdate(double elapsed)
 	{
@@ -165,10 +201,10 @@ namespace world {
 			movement.Velocity = agent.Heading * agent.Speed;
 
 			// Update attack cooldown
-			agent.AttackCooldown = std::max(0.0, agent.AttackCooldown - elapsed);
+			agent.AttackCooldown = max(0.0, agent.AttackCooldown - elapsed);
 			
 			// Update recovery cooldown
-			agent.RecoveryCooldown = std::max(0.0, agent.RecoveryCooldown - elapsed);
+			agent.RecoveryCooldown = max(0.0, agent.RecoveryCooldown - elapsed);
 			// Strobe the model while in cooldown
 			if (agent.RecoveryCooldown) {
 				static const float k_recoveryFlashPeriod = 0.25f;
@@ -240,7 +276,7 @@ namespace world {
 			auto& player = playerEntity.Get<Agent>();
 			auto& playerPos = playerEntity.Get<Position>();
 
-			for (auto& enemyEntity : ER.GetIterator<Agent, Position>()) {
+			for (auto& enemyEntity : ER.GetIterator<AI,Agent, Position>()) {
 				auto& enemy = enemyEntity.Get<Agent>();
 				auto& enemyPos = enemyEntity.Get<Position>();
 				if (enemy.Faction != player.Faction) {
@@ -403,7 +439,23 @@ namespace world {
 	void Room::SweepUpdate(double elapsed)
 	{
 		for (auto& entity : ER.GetIterator<Sweep, Position>()) {
-
+			auto& sweep = entity.Get<Sweep>();
+			auto& position = entity.Get<Position>();
+			
+			sweep.Progress = min(sweep.Duration, sweep.Progress + elapsed);
+			float percent = (sweep.Progress / sweep.Duration);
+			sweep.CurrentWaypoint = percent * (sweep.Waypoints.size() - 1);
+			float linePercent = percent - ((float)sweep.CurrentWaypoint / (float)(sweep.Waypoints.size() - 1));
+			Vector3 currentWaypoint = sweep.Waypoints[sweep.CurrentWaypoint];
+			
+			if (sweep.CurrentWaypoint < sweep.Waypoints.size() - 1) {
+				Vector3 nextWaypoint = sweep.Waypoints[sweep.CurrentWaypoint + 1];
+				position.Pos = (nextWaypoint - currentWaypoint) * linePercent + currentWaypoint;
+			}
+			else {
+				position.Pos = currentWaypoint;
+			}
+			
 		}
 	}
 	void Room::DeferredUpdate(double elapsed)

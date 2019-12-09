@@ -34,9 +34,9 @@ namespace world {
 	const int World::k_maxBranchingSize = 8;
 	const float World::k_lockedDoorProbability = 0.5;
 	const int World::k_roomCount = 20;
-	//const Vector3 World::k_cameraOffset = Vector3(0.f, 8.f, -4.f);
+	const Vector3 World::k_cameraOffset = Vector3(0.f, 8.f, -4.f);
 	//const Vector3 World::k_cameraOffset = Vector3(0.f, 1.f, -1.f);
-	const Vector3 World::k_cameraOffset = Vector3(0.f, 3.f, -3.f);
+	//const Vector3 World::k_cameraOffset = Vector3(0.f, 3.f, -3.f);
 
 	const int World::k_minEnemies = 1;
 	const int World::k_maxEnemies = 3;
@@ -255,6 +255,15 @@ namespace world {
 				// The arrow keys are not being pressed, stop attacking
 				agent.Attack = false;
 			}
+			// TEMP
+			/*if (m_keys['q']) {
+				m_currentNode->Data.Room.SweepAttack(0);
+				m_keys['q'] = false;
+			}
+			else if (m_keys['f']) {
+				m_currentNode->Data.Room.StompAttack(Vector2(0.f,0.f));
+				m_keys['f'] = false;
+			}*/
 		}
 		m_nextCurrentNode = GetContainingNode(playerPosition);
 		if (playerID && m_nextCurrentNode && m_currentNode != m_nextCurrentNode) {

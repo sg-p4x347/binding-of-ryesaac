@@ -49,7 +49,8 @@ namespace world {
 		void AddLoot(LootItem item);
 		void DropLoot();
 		void SweepAttack(int cornerIndex);
-		void SweepAttack(Vector3 pivot, Vector3 start, Vector3 end);
+		ecs::EntityID CreateDuck();
+		void StompAttack(Vector2 focus);
 	private:
 		void AgentUpdate(double elapsed);
 		void AiUpdate(double elapsed);
@@ -73,6 +74,7 @@ namespace world {
 		vector<LootItem> m_loot;
 		Vector3 m_center;
 		RoomType m_type;
+		ecs::EntityID m_duck;
 		bool m_inCombat;
 	};
 }

@@ -5,7 +5,8 @@
 using math::Vector3;
 
 namespace world {
-	struct Sweep
+	struct Sweep :
+		public ecs::Component
 	{
 		Sweep();
 		vector<Vector3> Waypoints;
