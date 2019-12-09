@@ -73,7 +73,7 @@ namespace world {
 		vector<IntVec2> CreateRoomUnitSet(IntVec2 entrance, IntVec2 direction, IntVec2 size);
 		vector<IntVec2> CreateRoomUnitSet(IntVec2 entrance, IntVec2 direction);
 		void BakeRoomUnits(map<IntVec2,RoomGenerationUnit,IntVec2Comparer> & roomUnits, Room & room);
-		void SpawnEnemies(map<IntVec2, RoomGenerationUnit, IntVec2Comparer>& roomUnits, Room& room, string model, float speed, int health, int damage);
+		void SpawnEnemies(map<IntVec2, RoomGenerationUnit, IntVec2Comparer>& roomUnits, Room& room, string model, float speed, int health, int damage, bool maxBaddies);
 		void GenerateKeys(RoomNode root);
 		int RollDoorCount(int max);
 		int RollRoomUnits();

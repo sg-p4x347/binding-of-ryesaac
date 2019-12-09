@@ -134,8 +134,9 @@ namespace game
 		{
 			Vector2 position = { 0.f, 0.f };
 			Vector2 size = { 1.f, (float)glutGet(GLUT_WINDOW_HEIGHT) / (float)glutGet(GLUT_WINDOW_WIDTH) };
-			string texture = slideShow[activeSlide].getTexName();
-			//glRasterPos2d(0, 0);
+			string texture;
+			if (state == GameState::Outro) texture = "ogp_end";
+			else texture = slideShow[activeSlide].getTexName();
 			glLoadIdentity();
 			gluOrtho2D(0, 1, 0, (float)glutGet(GLUT_WINDOW_HEIGHT) / (float)glutGet(GLUT_WINDOW_WIDTH));
 			RenderQuad(position, size, texture);
