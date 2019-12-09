@@ -11,6 +11,11 @@ using tex::TextureRepository;
 
 #include "geom/Sphere.h"
 
+#include "game/Game.h"
+using game::Game;
+#include "game/MultimediaPlayer.h"
+using game::MultimediaPlayer;
+
 #include <GL/glut.h>
 
 namespace world {
@@ -25,6 +30,7 @@ namespace world {
 		AgentUpdate(elapsed);
 		MovementUpdate(elapsed);
 		CollisionUpdate(elapsed);
+		PlayerLocationUpdate();
 		DoorUpdate(elapsed);
 		CombatUpdate(elapsed);
 		ItemUpdate(elapsed);
@@ -117,10 +123,10 @@ namespace world {
 			movement.Velocity = agent.Heading * agent.Speed;
 
 			// Update attack cooldown
-			agent.AttackCooldown = std::max(0.0, agent.AttackCooldown - elapsed);
+			agent.AttackCooldown = max(0.0, agent.AttackCooldown - elapsed);
 			
 			// Update recovery cooldown
-			agent.RecoveryCooldown = std::max(0.0, agent.RecoveryCooldown - elapsed);
+			agent.RecoveryCooldown = max(0.0, agent.RecoveryCooldown - elapsed);
 			// Strobe the model while in cooldown
 			if (agent.RecoveryCooldown) {
 				static const float k_recoveryFlashPeriod = 0.25f;
@@ -264,6 +270,21 @@ namespace world {
 							staticCollision.Contacts[contact.Collider] = contact;
 						}
 					}
+				}
+			}
+		}
+	}
+
+	void Room::PlayerLocationUpdate()
+	{
+		for (auto& playerEntity : ER.GetIterator<Player, Collision>()) {
+			auto& player = playerEntity.Get<Player>();
+			if (m_type == RoomType::Duck) {
+				if (Game::GetInstance().state != GameState::InGame_BossBattle)
+				{
+					Game::GetInstance().state = GameState::InGame_BossBattle;
+					Game::GetInstance().bossStart = clock();
+					MultimediaPlayer::SetUp("Boss_Battle_Condesa_DuckAttacks_Overlay.wav", true, true);
 				}
 			}
 		}

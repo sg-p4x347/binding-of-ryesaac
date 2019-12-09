@@ -5,6 +5,9 @@
 #include "world/World.h"
 using world::World;
 
+#include "world/Room.h"
+using world::Room;
+
 #include "tex/TextureRepository.h"
 using tex::TextureRepository;
 
@@ -37,9 +40,9 @@ namespace game
 	public:
 		static Game& GetInstance();
 		GameState state = GameState::None;
-		clock_t gameStart;
+		clock_t bossStart;
 		clock_t slideStart;
-
+		
 		short activeSlide;
 		vector<Slide> slideShow = {
 			Slide(4.5, "ogp"),
