@@ -90,10 +90,11 @@ void initialize() {
 	glEnable(GL_LIGHT0);
 	float pos[]{1.f,1.f,0.f,1.f };
 	glLightfv(GL_LIGHT0, GL_POSITION, pos);
-	float spotDir[]{ 0.f,-1.f,0.f };
-	glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, spotDir);
-	float ambient[]{ 0.5f,0.5f,0.5f,1.f };
-	glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
+	float white[]{ 1.f,1.f,1.f,1.f };
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, white);
+	float black[]{0.f,0.f,0.f,1.f };
+	glLightfv(GL_LIGHT0, GL_AMBIENT, black);
+
 	glFrontFace(GL_CCW);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);

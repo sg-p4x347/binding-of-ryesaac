@@ -156,6 +156,7 @@ namespace world {
 
 	void World::Render()
 	{
+		glEnable(GL_LIGHTING);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear color and depth buffers
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
@@ -270,7 +271,8 @@ namespace world {
 
 		// Perform room system updates in the current room
 		m_currentNode->Data.Room.Update(elapsed);
-		
+		for (auto& adjacentNode : m_currentNode->AdjacentNodes)
+			adjacentNode->Data.Room.Update(elapsed);
 		// Remove unwanted entities
 		for (auto& id : m_removedEntities) {
 			m_currentNode->Data.Room.GetER().Remove(id);
@@ -298,10 +300,10 @@ namespace world {
 	}
 	void World::RenderHUD()
 	{
+		glDisable(GL_LIGHTING);
 		glLoadIdentity();
 		float height = (float)glutGet(GLUT_WINDOW_HEIGHT) / (float)glutGet(GLUT_WINDOW_WIDTH);
 		gluOrtho2D(0, 1, 0, height);
-
 		static const float k_healthWidth = 0.3f;
 
 		for (auto& entity : m_currentNode->Data.Room.GetER().GetIterator<Player, Agent>()) {
@@ -326,12 +328,16 @@ namespace world {
 		glBindTexture(GL_TEXTURE_2D, TextureRepository::GetID(texture));
 		glBegin(GL_QUADS);
 		glTexCoord2f(0.f,0.f);
+		glNormal3f(0.f, 0.f, -1.f);
 		glVertex2f(position.X, position.Y);
 		glTexCoord2f(1.f,0.f);
+		glNormal3f(0.f, 0.f, -1.f);
 		glVertex2f(position.X + size.X, position.Y);
 		glTexCoord2f(1.f,1.f);
+		glNormal3f(0.f, 0.f, -1.f);
 		glVertex2f(position.X + size.X, position.Y + size.Y);
 		glTexCoord2f(0.f, 1.f);
+		glNormal3f(0.f, 0.f, -1.f);
 		glVertex2f(position.X, position.Y + size.Y);
 		glEnd();
 	}
