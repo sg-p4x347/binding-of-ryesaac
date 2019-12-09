@@ -111,10 +111,6 @@ void initialize() {
 	MultimediaPlayer::SetUp("./Assets/audio/Intro_Condesa_Vox_Overlay.wav", true, false);
 	MultimediaPlayer::GetInstance().startAudio();
 }
-void runIntro()
-{
-	
-}
 void update()
 {
 	Game::GetInstance().Update();
