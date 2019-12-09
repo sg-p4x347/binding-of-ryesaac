@@ -42,16 +42,17 @@ namespace game
 
 		short activeSlide;
 		vector<Slide> slideShow = {
-			Slide(8.5, "Panel_Present"),
+			Slide(4.5, "ogp"),
+			Slide(4, "Panel_Present"),
 			Slide(8, "Panel_Featuring"),
 			Slide(7.75, "Panel_Title"),
-			Slide(5, "Panel_BackStory"),
-			Slide(5, "Panel_ToasterTalks"),
-			Slide(5, "Panel_LockedAway"),
-			Slide(5, "Panel_ToasterTalks"),
-			Slide(5, "Panel_HoleInTheWall"),
-			Slide(5, "Panel_Pursuit"),
-			Slide(5, "Panel_MainMenu")
+			Slide(19.25, "Panel_BackStory"),
+			Slide(9.75, "Panel_ToasterTalks"),
+			Slide(8.75, "Panel_LockedAway"),
+			Slide(14, "Panel_ToasterTalks"),
+			Slide(10, "Panel_HoleInTheWall"),
+			Slide(8.5, "Panel_Pursuit"),
+			Slide(INT_MAX, "Panel_MainMenu")
 		};
 
 		static void mouseMoveHandler(int cursorX, int cursorY);

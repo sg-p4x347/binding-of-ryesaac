@@ -25,6 +25,27 @@ namespace game
 	{
 		if (GetInstance().g_world)
 			GetInstance().g_world->UpdateKeyState(key, true);
+		else
+		{
+			if (key == 13)
+			{
+				switch ((int)Game::GetInstance().state)
+				{
+				case (int)GameState::Intro:
+					Game::GetInstance().state = GameState::MainMenu;
+					Game::GetInstance().activeSlide = Game::GetInstance().slideShow.size() - 1;
+					MultimediaPlayer::SetUp("./Assets/audio/Ambience_MainMenu_ChiPhil.wav", true, true);
+					MultimediaPlayer::GetInstance().startAudio();
+					break;
+				case (int)GameState::MainMenu:
+					Game::GetInstance().state = GameState::InGame_Standard;
+					Game::GetInstance().GenerateWorld();
+					MultimediaPlayer::SetUp("./Assets/audio/Ambience_InGame_ChiPhil.wav", true, true);
+					MultimediaPlayer::GetInstance().startAudio();
+					break;
+				}
+			}
+		}
 	}
 
 	void Game::keyUpHandler(unsigned char key, int x, int y)
@@ -79,27 +100,25 @@ namespace game
 				
 				// Set up a timer for sync uses and start music
 				gameStart = clock();
-				MultimediaPlayer::GetInstance().startAudio();
 				slideStart = clock();
+				MultimediaPlayer::GetInstance().startAudio();
 			}
 			else if (state == GameState::Intro)
 			{
 				clock_t current = clock();
-				elapsed = (current - gameStart) / (double)CLOCKS_PER_SEC;
+				elapsed = (current - slideStart) / (double)CLOCKS_PER_SEC;
 				double sum = 0;
-				for (int i = 0; i < slideShow.size(); ++i)
+				if (elapsed > slideShow[activeSlide].getDuration())
 				{
-					sum += slideShow[i].getDuration();
-					if (elapsed <= sum)
-					{
-						activeSlide = i;
-						i = slideShow.size();
-					}
+					++activeSlide;
+					slideStart = clock();
 				}
-			}
-			else if (state == GameState::MainMenu)
-			{
-				
+				if (activeSlide == slideShow.size() - 1)
+				{
+					state = GameState::MainMenu;
+					MultimediaPlayer::SetUp("./Assets/audio/Ambience_MainMenu_ChiPhil.wav", true, true);
+					MultimediaPlayer::GetInstance().startAudio();
+				}
 			}
 		}
 	}

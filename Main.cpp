@@ -70,6 +70,8 @@ int main(int argc, char** argv) {
 	glutIdleFunc(update);
 	glutDisplayFunc(render);
 
+	TextureRepository::GetInstance();
+	Sleep(2000);
 	//Game::GetInstance().GenerateWorld();
 	// Start 60 Hz frame rendering
 	glutTimerFunc(16, renderTick,0);
