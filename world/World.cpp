@@ -436,7 +436,7 @@ namespace world {
 		X <------*
 
 		*/
-		auto floorModel = ModelRepository::Get("floor");
+		auto floorModel = room.GetType() == Room::RoomType::Root ? ModelRepository::Get("instructions") : ModelRepository::Get("floor");
 		for (auto& unit : roomUnits) {
 			Vector3 unitCenter = Vector3(unit.first.X * k_roomUnitSize.X * k_tileSize,0.f,unit.first.Y * k_roomUnitSize.Y * k_tileSize);
 			Vector3 unitSize = Vector3(k_roomUnitSize.X * k_tileSize, 1.f, k_roomUnitSize.Y * k_tileSize);
