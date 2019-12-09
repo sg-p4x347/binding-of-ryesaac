@@ -71,7 +71,11 @@ int main(int argc, char** argv) {
 	glutIdleFunc(update);
 	glutDisplayFunc(render);
 
-	Game::GetInstance().GenerateWorld();
+	// Set up audio
+	MultimediaPlayer::SetUp("./Assets/audio/Intro_Condesa_Vox_Overlay.wav", true, false);
+	MultimediaPlayer::GetInstance().startAudio();
+
+	//Game::GetInstance().GenerateWorld();
 	// Start 60 Hz frame rendering
 	glutTimerFunc(16, renderTick,0);
 	glutMainLoop();
@@ -106,10 +110,6 @@ void initialize() {
 	
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	
-	// Set up audio
-	MultimediaPlayer::SetUp("./Assets/audio/Intro_Condesa_Vox_Overlay.wav", true, false);
-	MultimediaPlayer::GetInstance().startAudio();
 }
 void update()
 {

@@ -55,19 +55,45 @@ namespace game
 	void Game::Update()
 	{
 		if (g_world) g_world->Update();
+		else
+		{
+			
+		}
 	}
 
 	void Game::Render()
 	{
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear color and depth buffers
+
 		if (g_world) { g_world->Render(); }
 		else
 		{
-			auto introPanels = TextureRepository::GetBitmap("intro_corrected");
-			gluOrtho2D(0, 1, 0, 1);
-			glBegin(GL_BITMAP);
+			Vector2 position = { 0.f, 0.f };
+			Vector2 size = { 1.f, (float)glutGet(GLUT_WINDOW_HEIGHT) / (float)glutGet(GLUT_WINDOW_WIDTH) };
 			glRasterPos2d(0, 0);
-			glDrawPixels(introPanels->GetWidth() / 2, introPanels->GetHeight() / 2, GL_RGBA, GL_UNSIGNED_BYTE, introPanels->GetPixels());
+			glLoadIdentity();
+			gluOrtho2D(0, 1, 0, (float)glutGet(GLUT_WINDOW_HEIGHT) / (float)glutGet(GLUT_WINDOW_WIDTH));
+			RenderQuad(position, size, "intro_corrected");
 			glEnd();
 		}
+
+		// flush out the buffer contents
+		glFinish();
+		glutSwapBuffers();
+	}
+
+	void Game::RenderQuad(Vector2 position, Vector2 size, string texture)
+	{
+		glBindTexture(GL_TEXTURE_2D, TextureRepository::GetID(texture));
+		glBegin(GL_QUADS);
+		glTexCoord2f(0.f, 0.f);
+		glVertex2f(position.X, position.Y);
+		glTexCoord2f(1.f, 0.f);
+		glVertex2f(position.X + size.X, position.Y);
+		glTexCoord2f(1.f, 1.f);
+		glVertex2f(position.X + size.X, position.Y + size.Y);
+		glTexCoord2f(0.f, 1.f);
+		glVertex2f(position.X, position.Y + size.Y);
+		glEnd();
 	}
 }

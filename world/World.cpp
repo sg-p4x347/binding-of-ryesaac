@@ -154,7 +154,6 @@ namespace world {
 
 	void World::Render()
 	{
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear color and depth buffers
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
 		//glOrtho(-1, 1, -1, 1, 0, 2);
@@ -188,11 +187,6 @@ namespace world {
 			adjacentNode->Data.Room.Render();
 
 		glPopMatrix();
-		
-
-		// flush out the buffer contents
-		glFinish();
-		glutSwapBuffers();
 	}
 
 	void World::PlayerUpdate(double elapsed)
