@@ -11,6 +11,11 @@ using tex::TextureRepository;
 
 #include "geom/Sphere.h"
 
+#include "game/Game.h"
+using game::Game;
+#include "game/MultimediaPlayer.h"
+using game::MultimediaPlayer;
+
 #include <GL/glut.h>
 
 #include "World.h"
@@ -27,6 +32,7 @@ namespace world {
 		AgentUpdate(elapsed);
 		MovementUpdate(elapsed);
 		CollisionUpdate(elapsed);
+		PlayerLocationUpdate();
 		DoorUpdate(elapsed);
 		CombatUpdate(elapsed);
 		ItemUpdate(elapsed);
@@ -348,6 +354,24 @@ namespace world {
 							staticCollision.Contacts[contact.Collider] = contact;
 						}
 					}
+				}
+			}
+		}
+	}
+
+	void Room::PlayerLocationUpdate()
+	{
+		for (auto& playerEntity : ER.GetIterator<Player, Collision>()) {
+			auto& player = playerEntity.Get<Player>();
+			if (m_type == RoomType::Duck) {
+				int fish = 0;
+				if (Game::GetInstance().state != GameState::InGame_BossBattle)
+				{
+					fish++;
+					Game::GetInstance().state = GameState::InGame_BossBattle;
+					Game::GetInstance().bossStart = clock();
+					MultimediaPlayer::SetUp("./Assets/audio/Boss_Battle_Condesa_DuckAttacks_Overlay.wav", true, true);
+					MultimediaPlayer::GetInstance().startAudio();
 				}
 			}
 		}

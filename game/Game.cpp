@@ -87,7 +87,10 @@ namespace game
 
 	void Game::Update()
 	{
-		if (g_world) g_world->Update();
+		if (g_world)
+		{
+			g_world->Update();
+		}
 		else
 		{
 			double elapsed;
@@ -99,7 +102,6 @@ namespace game
 				activeSlide = 0;
 				
 				// Set up a timer for sync uses and start music
-				gameStart = clock();
 				slideStart = clock();
 				MultimediaPlayer::GetInstance().startAudio();
 			}

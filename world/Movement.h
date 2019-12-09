@@ -1,4 +1,5 @@
 #pragma once
+#include "pch.h"
 #include "ecs/Component.h"
 
 #include "math/Vector3.h"

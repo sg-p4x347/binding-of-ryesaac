@@ -56,6 +56,7 @@ namespace world {
 		void AiUpdate(double elapsed);
 		void MovementUpdate(double elapsed);
 		void CollisionUpdate(double elapsed);
+		void PlayerLocationUpdate();
 		// Updates door model and state based on the current door state and interactions
 		void DoorUpdate(double elapsed);
 		// Ensures that all doors are closed while in combat
