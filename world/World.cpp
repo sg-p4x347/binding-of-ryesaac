@@ -131,16 +131,29 @@ namespace world {
 			BakeRoomUnits(roomMap, roomNode->Data.Room);
 			if (roomNode->Data.Room.GetType() == Room::RoomType::Normal) {
 				if (math::Chance(0.5f)) {
-					SpawnEnemies(roomMap, roomNode->Data.Room, "toaster", 2.f, 3, 1);
+					SpawnEnemies(roomMap, roomNode->Data.Room, "toaster", 2.f, 3, 1., false);
 				}
 				else {
 					if (math::Chance(0.5f)) {
-						SpawnEnemies(roomMap, roomNode->Data.Room, "burnt_toast", 4.9f, 1, 1);
+						SpawnEnemies(roomMap, roomNode->Data.Room, "burnt_toast", 4.9f, 1, 1., false);
 					}
 					else {
-						SpawnEnemies(roomMap, roomNode->Data.Room, "moldy_loaf", 1.f, 10, 3);
+						SpawnEnemies(roomMap, roomNode->Data.Room, "moldy_loaf", 1.f, 10, 3, false);
 					}
 				}
+			}
+			else if (roomNode->Data.Room.GetType() == Room::RoomType::Duck) {
+				//if (math::Chance(0.5f)) {
+					SpawnEnemies(roomMap, roomNode->Data.Room, "toaster", 2.f, 3, 1, true);
+				//}
+				//else {
+					//if (math::Chance(0.5f)) {
+						SpawnEnemies(roomMap, roomNode->Data.Room, "burnt_toast", 4.9f, 1, 1, true);
+					//}
+					//else {
+						SpawnEnemies(roomMap, roomNode->Data.Room, "moldy_loaf", 1.f, 10, 3, true);
+					//}
+				//}
 			}
 			GenerateKeys(seed);
 		}
@@ -513,14 +526,16 @@ namespace world {
 			}
 		}
 	}
-	void World::SpawnEnemies(map<IntVec2, RoomGenerationUnit, IntVec2Comparer>& roomUnits, Room& room, string model, float speed, int health, int damage)
+	void World::SpawnEnemies(map<IntVec2, RoomGenerationUnit, IntVec2Comparer>& roomUnits, Room& room, string model, float speed, int health, int damage, bool maxBaddies)
 	{
 		auto toasterModel = ModelRepository::Get(model);
 		
 		for (auto& unit : roomUnits) {
 			Vector3 unitCenter = Vector3(unit.first.X * k_roomUnitSize.X * k_tileSize, 0.f, unit.first.Y * k_roomUnitSize.Y * k_tileSize);
 			Vector3 unitSize = Vector3(k_roomUnitSize.X * k_tileSize, 1.f, k_roomUnitSize.Y * k_tileSize);
-			int toasterCount = math::RandWithin(k_minEnemies, k_maxEnemies);
+			int toasterCount;
+			if (!maxBaddies) toasterCount = math::RandWithin(k_minEnemies, k_maxEnemies);
+			else toasterCount = 7;
 			set<IntVec2,IntVec2Comparer> spawns;
 			while (spawns.size() < toasterCount) {
 				IntVec2 spawn((int)math::RandWithin(unitCenter.X - unitSize.X / 2.0 + 1, unitCenter.X + unitSize.X / 2.0 - 1),
