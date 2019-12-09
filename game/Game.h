@@ -12,8 +12,11 @@ using tex::TextureRepository;
 using tex::Bitmap;
 
 #include "MultimediaPlayer.h"
+#include "Slide.h"
 
 #include <GL/glut.h>
+#include <ctime>
+using std::clock_t;
 
 enum GameState {
 	None,
@@ -34,8 +37,22 @@ namespace game
 	public:
 		static Game& GetInstance();
 		GameState state = GameState::None;
+		clock_t gameStart;
+		clock_t slideStart;
 
-		shared_ptr<Bitmap> introPanels = TextureRepository::GetBitmap("intro_scaled");
+		short activeSlide;
+		vector<Slide> slideShow = {
+			Slide(8.5, "Panel_Present"),
+			Slide(8, "Panel_Featuring"),
+			Slide(7.75, "Panel_Title"),
+			Slide(5, "Panel_BackStory"),
+			Slide(5, "Panel_ToasterTalks"),
+			Slide(5, "Panel_LockedAway"),
+			Slide(5, "Panel_ToasterTalks"),
+			Slide(5, "Panel_HoleInTheWall"),
+			Slide(5, "Panel_Pursuit"),
+			Slide(5, "Panel_MainMenu")
+		};
 
 		static void mouseMoveHandler(int cursorX, int cursorY);
 		static void keyHandler(unsigned char key, int x, int y);
@@ -44,6 +61,7 @@ namespace game
 		static void specialUpHandler(int key, int x, int y);
 
 		void GenerateWorld();
+		void EnableLighting();
 
 		void Update();
 		void Render();

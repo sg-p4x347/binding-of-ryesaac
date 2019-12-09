@@ -47,9 +47,21 @@ namespace game
 
 	void Game::GenerateWorld()
 	{
+		EnableLighting();
 		GetInstance().g_world = std::make_unique<World>();
 		if (GetInstance().g_world)
 			GetInstance().g_world->Generate();
+	}
+
+	void Game::EnableLighting()
+	{
+		glEnable(GL_LIGHT0);
+		float pos[]{ 1.f,1.f,0.f,1.f };
+		glLightfv(GL_LIGHT0, GL_POSITION, pos);
+		float spotDir[]{ 0.f,-1.f,0.f };
+		glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, spotDir);
+		float ambient[]{ 0.5f,0.5f,0.5f,1.f };
+		glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
 	}
 
 	void Game::Update()
@@ -57,12 +69,37 @@ namespace game
 		if (g_world) g_world->Update();
 		else
 		{
+			double elapsed;
 			if (state == GameState::None)
 			{
 				state = GameState::Intro;
 				// Set up audio
 				MultimediaPlayer::SetUp("./Assets/audio/Intro_Condesa_Vox_Overlay.wav", true, false);
+				activeSlide = 0;
+				
+				// Set up a timer for sync uses and start music
+				gameStart = clock();
 				MultimediaPlayer::GetInstance().startAudio();
+				slideStart = clock();
+			}
+			else if (state == GameState::Intro)
+			{
+				clock_t current = clock();
+				elapsed = (current - gameStart) / (double)CLOCKS_PER_SEC;
+				double sum = 0;
+				for (int i = 0; i < slideShow.size(); ++i)
+				{
+					sum += slideShow[i].getDuration();
+					if (elapsed <= sum)
+					{
+						activeSlide = i;
+						i = slideShow.size();
+					}
+				}
+			}
+			else if (state == GameState::MainMenu)
+			{
+				
 			}
 		}
 	}
@@ -76,7 +113,7 @@ namespace game
 		{
 			Vector2 position = { 0.f, 0.f };
 			Vector2 size = { 1.f, (float)glutGet(GLUT_WINDOW_HEIGHT) / (float)glutGet(GLUT_WINDOW_WIDTH) };
-			string texture = "Panel_Present";
+			string texture = slideShow[activeSlide].getTexName();
 			//glRasterPos2d(0, 0);
 			glLoadIdentity();
 			gluOrtho2D(0, 1, 0, (float)glutGet(GLUT_WINDOW_HEIGHT) / (float)glutGet(GLUT_WINDOW_WIDTH));

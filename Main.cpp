@@ -84,15 +84,6 @@ void initialize() {
 	glClearDepth(1.0f);                 // Set background depth to farthest
 	glEnable(GL_NORMALIZE);
 	glEnable(GL_DEPTH_TEST);			// Enable depth testing for z-culling
-	glEnable(GL_LIGHTING);
-	glShadeModel(GL_SMOOTH);
-	glEnable(GL_LIGHT0);
-	float pos[]{1.f,1.f,0.f,1.f };
-	glLightfv(GL_LIGHT0, GL_POSITION, pos);
-	float spotDir[]{ 0.f,-1.f,0.f };
-	glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, spotDir);
-	float ambient[]{ 0.5f,0.5f,0.5f,1.f };
-	glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
 	glFrontFace(GL_CCW);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);

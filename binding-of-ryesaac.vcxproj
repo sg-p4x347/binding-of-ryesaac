@@ -188,6 +188,7 @@
     <ClCompile Include="math\Utility.cpp" />
     <ClCompile Include="math\Vector2.cpp" />
     <ClCompile Include="math\Vector3.cpp" />
+    <ClCompile Include="Slide.cpp" />
     <ClCompile Include="world\Agent.cpp" />
     <ClCompile Include="world\AI.cpp" />
     <ClCompile Include="world\Collision.cpp" />
@@ -225,6 +226,7 @@
     <ClInclude Include="math\Vector2.h" />
     <ClInclude Include="math\Vector3.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="Slide.h" />
     <ClInclude Include="world\Agent.h" />
     <ClInclude Include="world\AI.h" />
     <ClInclude Include="world\Collision.h" />
