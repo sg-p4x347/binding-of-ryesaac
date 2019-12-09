@@ -280,11 +280,14 @@ namespace world {
 		for (auto& playerEntity : ER.GetIterator<Player, Collision>()) {
 			auto& player = playerEntity.Get<Player>();
 			if (m_type == RoomType::Duck) {
+				int fish = 0;
 				if (Game::GetInstance().state != GameState::InGame_BossBattle)
 				{
+					fish++;
 					Game::GetInstance().state = GameState::InGame_BossBattle;
 					Game::GetInstance().bossStart = clock();
-					MultimediaPlayer::SetUp("Boss_Battle_Condesa_DuckAttacks_Overlay.wav", true, true);
+					MultimediaPlayer::SetUp("./Assets/audio/Boss_Battle_Condesa_DuckAttacks_Overlay.wav", true, true);
+					MultimediaPlayer::GetInstance().startAudio();
 				}
 			}
 		}
