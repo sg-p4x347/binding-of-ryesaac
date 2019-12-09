@@ -13,6 +13,8 @@ using tex::TextureRepository;
 
 #include <GL/glut.h>
 
+#include "World.h"
+
 namespace world {
 	const float Room::k_collisionCullRange = 1.5f;
 	Room::Room(RoomType type, Vector3 center) : m_center(center), m_type(type), m_inCombat(false)
@@ -101,6 +103,52 @@ namespace world {
 		}
 		// Consume the loot
 		m_loot.clear();
+	}
+
+	void Room::SweepAttack(int cornerIndex)
+	{
+		Vector3 pivot;
+		Vector3 start;
+		float angle;
+
+		switch (cornerIndex) {
+		case 0: 
+			pivot = m_center + Vector3(-World::k_roomUnitSize.X, 0.f, -World::k_roomUnitSize.Y) * 0.5f; 
+			start = m_center + Vector3(World::k_roomUnitSize.X, 0.f, -World::k_roomUnitSize.Y) * 0.5f;
+			angle = -math::PI / 2.f;
+			break;
+		case 1: 
+			pivot = m_center + Vector3(World::k_roomUnitSize.X, 0.f, -World::k_roomUnitSize.Y) * 0.5f;
+			start = m_center + Vector3(-World::k_roomUnitSize.X, 0.f, -World::k_roomUnitSize.Y) * 0.5f;
+			angle = math::PI / 2.f;
+			break;
+		case 2: 
+			pivot = m_center + Vector3(World::k_roomUnitSize.X, 0.f, World::k_roomUnitSize.Y) * 0.5f;
+			start = m_center + Vector3(-World::k_roomUnitSize.X, 0.f, World::k_roomUnitSize.Y) * 0.5f;
+			angle = math::PI / 2.f;
+			break;
+		case 3: 
+			pivot = m_center + Vector3(-World::k_roomUnitSize.X, 0.f, World::k_roomUnitSize.Y) * 0.5f;
+			start = m_center + Vector3(World::k_roomUnitSize.X, 0.f, World::k_roomUnitSize.Y) * 0.5f;
+			angle = -math::PI / 2.f;
+			break;
+		}
+		
+		Sweep sweep;
+		sweep.Duration = 2.f;
+		for (float t = 0; t <= 1; t += 1.f / 20) {
+			sweep.Waypoints.push_back(pivot + (math::CreateRotationY(angle * t) * (start - pivot)));
+		}
+		ER.CreateEntity(
+			Position(),
+			Movement(Vector3::Zero,Vector3(0.f, angle / sweep.Duration, 0.f)),
+			sweep,
+			Agent()
+		)
+	}
+
+	void Room::SweepAttack(Vector3 pivot, Vector3 start, Vector3 end)
+	{
 	}
 
 	void Room::AgentUpdate(double elapsed)
@@ -351,6 +399,12 @@ namespace world {
 			}
 		}
 		
+	}
+	void Room::SweepUpdate(double elapsed)
+	{
+		for (auto& entity : ER.GetIterator<Sweep, Position>()) {
+
+		}
 	}
 	void Room::DeferredUpdate(double elapsed)
 	{
