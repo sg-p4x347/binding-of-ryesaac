@@ -15,7 +15,7 @@ using tex::TextureRepository;
 
 namespace world {
 	const float Room::k_collisionCullRange = 1.5f;
-	Room::Room(Vector3 center) : m_center(center), m_inCombat(false)
+	Room::Room(RoomType type, Vector3 center) : m_center(center), m_type(type), m_inCombat(false)
 	{
 	}
 
@@ -70,6 +70,11 @@ namespace world {
 	EntityRepository& Room::GetER()
 	{
 		return ER;
+	}
+
+	Room::RoomType Room::GetType()
+	{
+		return m_type;
 	}
 
 	void Room::AddLoot(LootItem item)
@@ -160,15 +165,11 @@ namespace world {
 						for (auto& other : ER.GetIterator<Agent>()) {
 							auto& otherAgent = other.Get<Agent>();
 							// check to see if other is a different faction and shows up in our contact list
-							if (otherAgent.Faction != agent.Faction) {
-								for (auto& contact : collision.Contacts) {
-									if (contact.Collider == otherAgent.ID) {
-										// Apply other agent's damage to our health
-										agent.Health -= otherAgent.Damage;
-										// Start recovery cooldown
-										agent.RecoveryCooldown = agent.RecoveryPeriod;
-									}
-								}
+							if (otherAgent.Faction != agent.Faction && collision.Contacts.count(otherAgent.ID)) {
+								// Apply other agent's damage to our health
+								agent.Health -= otherAgent.Damage;
+								// Start recovery cooldown
+								agent.RecoveryCooldown = agent.RecoveryPeriod;
 							}
 						}
 					}
@@ -226,13 +227,16 @@ namespace world {
 				auto& staticCollision = staticCollider.Get<Collision>();
 				auto& staticPosition = staticCollider.Get<Position>();
 				if (
+					// This collision has already been handled by the other entity
+					!dynamicCollision.Contacts.count(staticCollision.ID)
 					// Only handle collisions between disjoint channels
-					!(dynamicCollision.Channel & staticCollision.Channel)
+					&& !(dynamicCollision.Channel & staticCollision.Channel)
 					// Don't collide with ourself
 					&& staticCollision.ID != dynamicCollision.ID 
 					// Be within a sane range
 					&& (staticPosition.Pos - dynamicPosition.Pos).LengthSquared() < k_collisionCullRange * k_collisionCullRange
 					) {
+					
 					auto staticCollisionVolume = staticCollision.CollisionVolume->Transform(staticPosition.GetTransform());
 					// Use GJK to test if an intersection exists
 					geom::GjkIntersection intersection;
@@ -248,10 +252,10 @@ namespace world {
 							
 							// Register contacts on both colliders
 							contact.Collider = staticCollision.ID;
-							dynamicCollision.Contacts.push_back(contact);
+							dynamicCollision.Contacts[contact.Collider] = contact;
 
 							contact.Collider = dynamicCollision.ID;
-							staticCollision.Contacts.push_back(contact);
+							staticCollision.Contacts[contact.Collider] = contact;
 						}
 					}
 				}
@@ -270,19 +274,16 @@ namespace world {
 				for (auto& playerEntity : ER.GetIterator<Player, Collision>()) {
 					auto& player = playerEntity.Get<Player>();
 					if (player.Inventory[LootItem::Key] > 0) {
-						for (auto& contact : playerEntity.Get<Collision>().Contacts) {
-							if (contact.Collider == door.ID) {
-								// unlock the door
-								door.State = Door::DoorState::Open;
-								// consume the key
-								player.Inventory[LootItem::Key]--;
-								goto updateState;
-							}
+						if (playerEntity.Get<Collision>().Contacts.count(door.ID)) {
+							// unlock the door
+							door.State = Door::DoorState::Open;
+							// consume the key
+							player.Inventory[LootItem::Key]--;
+							break;
 						}
 					}
 				}
 			}
-			updateState:
 
 			// Update model
 			model.ModelPtr = ModelRepository::Get("door_" + std::to_string((int)door.State));
@@ -332,16 +333,14 @@ namespace world {
 	{
 		for (auto& playerEntity : ER.GetIterator<Player, Collision>()) {
 			auto& player = playerEntity.Get<Player>();
-			for (auto& contact : playerEntity.Get<Collision>().Contacts) {
-				for (auto& entity : ER.GetIterator<Item>()) {
-					auto& item = entity.Get<Item>();
-					if (item.ID == contact.Collider) {
-						// Perform the transaction
-						player.Inventory[item.Type]++;
-						m_deferredTasks.push_back([=] {
-							ER.Remove(item.ID);
-						});
-					}
+			for (auto& entity : ER.GetIterator<Item>()) {
+				auto& item = entity.Get<Item>();
+				if (playerEntity.Get<Collision>().Contacts.count(item.ID)) {
+					// Perform the transaction
+					player.Inventory[item.Type]++;
+					m_deferredTasks.push_back([=] {
+						ER.Remove(item.ID);
+					});
 				}
 			}
 		}

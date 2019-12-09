@@ -35,10 +35,16 @@ namespace world {
 	class Room
 	{
 	public:
-		Room(Vector3 center);
+		enum class RoomType {
+			Root,
+			Toaster,
+			Duck
+		};
+		Room(RoomType type, Vector3 center);
 		void Update(double elapsed);
 		void Render();
 		EntityRepository& GetER();
+		RoomType GetType();
 		void AddLoot(LootItem item);
 		void DropLoot();
 	private:
@@ -60,6 +66,7 @@ namespace world {
 		vector<function<void()>> m_deferredTasks;
 		vector<LootItem> m_loot;
 		Vector3 m_center;
+		RoomType m_type;
 		bool m_inCombat;
 	};
 }

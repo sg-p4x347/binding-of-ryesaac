@@ -33,7 +33,7 @@ namespace world {
 	const int World::k_minRoomUnits = 1;
 	const int World::k_maxBranchingSize = 8;
 	const float World::k_lockedDoorProbability = 0.5;
-	const int World::k_roomCount = 20;
+	const int World::k_roomCount = 5;
 	//const Vector3 World::k_cameraOffset = Vector3(0.f, 8.f, -4.f);
 	//const Vector3 World::k_cameraOffset = Vector3(0.f, 1.f, -1.f);
 	const Vector3 World::k_cameraOffset = Vector3(0.f, 3.f, -3.f);
@@ -56,7 +56,7 @@ namespace world {
 
 		vector<IntVec2> seedRoom{ IntVec2(0,0) };
 		// create the starting room
-		auto seed = GenerateRoomNode(nullptr, seedRoom, false);
+		auto seed = GenerateRoomNode(Room::RoomType::Root, nullptr, seedRoom, false);
 		roomCount++;
 		// Create the player
 		seed->Data.Room.GetER().CreateEntity(
@@ -90,7 +90,9 @@ namespace world {
 					IntVec2 direction(round(x), round(y));
 					IntVec2 adjacent = unit + direction;
 					if (!Occupied(adjacent, roomUnits)) {
-						vector<IntVec2> adjacentRoom = CreateRoomUnitSet(adjacent, direction);
+						
+						auto type = roomCount < k_roomCount - 1 ? Room::RoomType::Toaster : Room::RoomType::Duck;
+						vector<IntVec2> adjacentRoom = type == Room::RoomType::Duck ? CreateRoomUnitSet(adjacent, direction,IntVec2(1,1)) : CreateRoomUnitSet(adjacent, direction);
 						if (!Occupied(adjacentRoom, roomUnits)) {
 							doorCount++;
 							roomCount++;
@@ -99,15 +101,15 @@ namespace world {
 							rooms.push(adjacentRoom);
 							
 							// Create a room node
-							bool locked = roomNode != seed && math::Chance(k_lockedDoorProbability);
-							auto node = GenerateRoomNode(roomNode, adjacentRoom, locked);
+							bool locked = roomNode->Data.Room.GetType() != Room::RoomType::Root && math::Chance(k_lockedDoorProbability);
+							auto node = GenerateRoomNode(type, roomNode, adjacentRoom, locked);
 							roomNodes.push(node);
 
 							// add the room units
 							for (auto& newUnit : adjacentRoom) {
 								roomUnits[newUnit] = RoomGenerationUnit();
 							}
-							auto door = std::make_shared<Door>(Door::DoorType::Normal, locked ? Door::DoorState::Locked : Door::DoorState::Closed);
+							auto door = std::make_shared<Door>(type == Room::RoomType::Duck ? Door::DoorType::Boss : Door::DoorType::Normal, locked ? Door::DoorState::Locked : Door::DoorState::Closed);
 							roomUnits[adjacent].Doors[(i + 2) % 4] = door;
 							roomUnits[unit].Doors[i] = door;
 
@@ -127,7 +129,7 @@ namespace world {
 
 			// bake each unit into entities
 			BakeRoomUnits(roomMap, roomNode->Data.Room);
-			if (roomNode != seed) SpawnToasters(roomMap, roomNode->Data.Room);
+			if (roomNode->Data.Room.GetType() == Room::RoomType::Toaster) SpawnToasters(roomMap, roomNode->Data.Room);
 			GenerateKeys(seed);
 		}
 		
@@ -135,7 +137,7 @@ namespace world {
 		m_currentNode = seed;
 	}
 
-	RoomNode World::GenerateRoomNode(RoomNode predecessor, vector<IntVec2> units, bool locked)
+	RoomNode World::GenerateRoomNode(Room::RoomType type, RoomNode predecessor, vector<IntVec2> units, bool locked)
 	{
 		// Calculate the center by averaging the unit centers
 		Vector3 center = Vector3::Zero;
@@ -144,7 +146,7 @@ namespace world {
 
 		center /= (float)units.size();
 
-		auto node = std::make_shared<GraphNode<RoomLink>>(RoomLink(Room(center),locked));
+		auto node = std::make_shared<GraphNode<RoomLink>>(RoomLink(Room(type, center),locked));
 		if (predecessor) {
 			node->AdjacentNodes.push_back(predecessor);
 			predecessor->AdjacentNodes.push_back(node);
@@ -163,7 +165,7 @@ namespace world {
 		int windowHeight = glutGet(GLUT_WINDOW_HEIGHT);
 		
 		gluPerspective(70.0, (double)windowWidth / windowHeight, 0.01, 1000.0);
-		
+	
 		// Get the player's position
 		for (auto& entity : m_currentNode->Data.Room.GetER().GetIterator<Player, Position>()) {
 			auto& player = entity.Get<Player>();
@@ -189,7 +191,7 @@ namespace world {
 
 		glPopMatrix();
 		
-
+		RenderHUD();
 		// flush out the buffer contents
 		glFinish();
 		glutSwapBuffers();
@@ -294,6 +296,45 @@ namespace world {
 	{
 
 	}
+	void World::RenderHUD()
+	{
+		glLoadIdentity();
+		float height = (float)glutGet(GLUT_WINDOW_HEIGHT) / (float)glutGet(GLUT_WINDOW_WIDTH);
+		gluOrtho2D(0, 1, 0, height);
+
+		static const float k_healthWidth = 0.3f;
+
+		for (auto& entity : m_currentNode->Data.Room.GetER().GetIterator<Player, Agent>()) {
+			auto& player = entity.Get<Player>();
+			auto& agent = entity.Get<Agent>();
+
+			Vector2 breadSize(k_healthWidth / std::ceil(agent.MaxHealth / 2.f), k_healthWidth / std::ceil(agent.MaxHealth / 2.f));
+			Vector2 cursor(1 - k_healthWidth, height - breadSize.Y);
+			for (int slice = 0; slice < agent.Health / 2; slice++) {
+				RenderQuad(cursor, breadSize, "bread_full");
+				cursor.X += breadSize.X;
+			}
+			if (agent.Health % 2 == 1) {
+				// Half slice
+				RenderQuad(cursor, breadSize, "bread_half");
+			}
+
+		}
+	}
+	void World::RenderQuad(Vector2 position, Vector2 size, string texture)
+	{
+		glBindTexture(GL_TEXTURE_2D, TextureRepository::GetID(texture));
+		glBegin(GL_QUADS);
+		glTexCoord2f(0.f,0.f);
+		glVertex2f(position.X, position.Y);
+		glTexCoord2f(1.f,0.f);
+		glVertex2f(position.X + size.X, position.Y);
+		glTexCoord2f(1.f,1.f);
+		glVertex2f(position.X + size.X, position.Y + size.Y);
+		glTexCoord2f(0.f, 1.f);
+		glVertex2f(position.X, position.Y + size.Y);
+		glEnd();
+	}
 	RoomNode World::GetContainingNode(Vector3 worldPosition)
 	{
 		IntVec2 unitFocus = GetUnitPosition(worldPosition);
@@ -337,23 +378,24 @@ namespace world {
 		}
 		return false;
 	}
-	vector<IntVec2> World::CreateRoomUnitSet(IntVec2 entrance, IntVec2 direction)
+	vector<IntVec2> World::CreateRoomUnitSet(IntVec2 entrance, IntVec2 direction, IntVec2 size)
 	{
 		IntVec2 tangent = IntVec2(-direction.Y, direction.X);
-		int width = RollRoomUnits();
-		int length = RollRoomUnits();
-
 		IntVec2 start = entrance + IntVec2(
-			min(tangent.X * width / 2, -tangent.X * width / 2),
-			min(tangent.Y * length / 2, -tangent.Y * length / 2)
+			min(tangent.X * size.X / 2, -tangent.X * size.X / 2),
+			min(tangent.Y * size.Y / 2, -tangent.Y * size.Y / 2)
 			);
 		vector<IntVec2> room;
-		for (int x = start.X; x < start.X + width; x++) {
-			for (int y = start.Y; y < start.Y + length; y++) {
+		for (int x = start.X; x < start.X + size.X; x++) {
+			for (int y = start.Y; y < start.Y + size.Y; y++) {
 				room.push_back(IntVec2(x, y));
 			}
 		}
 		return room;
+	}
+	vector<IntVec2> World::CreateRoomUnitSet(IntVec2 entrance, IntVec2 direction)
+	{
+		return CreateRoomUnitSet(entrance, direction, IntVec2(RollRoomUnits(), RollRoomUnits()));
 	}
 	void World::BakeRoomUnits(map<IntVec2, RoomGenerationUnit, IntVec2Comparer>& roomUnits, Room& room)
 	{
