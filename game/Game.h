@@ -11,7 +11,18 @@ using tex::TextureRepository;
 #include "tex/Bitmap.h"
 using tex::Bitmap;
 
+#include "MultimediaPlayer.h"
+
 #include <GL/glut.h>
+
+enum GameState {
+	None,
+	Intro,
+	MainMenu,
+	InGame_Standard,
+	InGame_BossBattle,
+	Outro
+};
 
 namespace game
 {
@@ -22,8 +33,9 @@ namespace game
 		unique_ptr<World> g_world;
 	public:
 		static Game& GetInstance();
+		GameState state = GameState::None;
 
-		shared_ptr<Bitmap> introPanels = TextureRepository::GetBitmap("intro_corrected");
+		shared_ptr<Bitmap> introPanels = TextureRepository::GetBitmap("intro_scaled");
 
 		static void mouseMoveHandler(int cursorX, int cursorY);
 		static void keyHandler(unsigned char key, int x, int y);

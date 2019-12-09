@@ -57,7 +57,13 @@ namespace game
 		if (g_world) g_world->Update();
 		else
 		{
-			
+			if (state == GameState::None)
+			{
+				state = GameState::Intro;
+				// Set up audio
+				MultimediaPlayer::SetUp("./Assets/audio/Intro_Condesa_Vox_Overlay.wav", true, false);
+				MultimediaPlayer::GetInstance().startAudio();
+			}
 		}
 	}
 
@@ -69,12 +75,12 @@ namespace game
 		else
 		{
 			Vector2 position = { 0.f, 0.f };
-			Vector2 size = { 1.f, 1.f };
-			string texture = "intro_corrected";
+			Vector2 size = { 1.f, (float)glutGet(GLUT_WINDOW_HEIGHT) / (float)glutGet(GLUT_WINDOW_WIDTH) };
+			string texture = "Panel_Present";
 			//glRasterPos2d(0, 0);
 			glLoadIdentity();
 			gluOrtho2D(0, 1, 0, (float)glutGet(GLUT_WINDOW_HEIGHT) / (float)glutGet(GLUT_WINDOW_WIDTH));
-			RenderQuad(position, size, "intro_corrected");
+			RenderQuad(position, size, texture);
 		}
 
 		// flush out the buffer contents

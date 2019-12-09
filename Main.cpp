@@ -46,7 +46,6 @@ using tex::Bitmap;
 #include <thread>
 
 void initialize();
-void runIntro();
 void update();
 void render();
 void renderTick(int value);
@@ -70,10 +69,6 @@ int main(int argc, char** argv) {
 	glutSpecialUpFunc(Game::specialUpHandler);
 	glutIdleFunc(update);
 	glutDisplayFunc(render);
-
-	// Set up audio
-	MultimediaPlayer::SetUp("./Assets/audio/Intro_Condesa_Vox_Overlay.wav", true, false);
-	MultimediaPlayer::GetInstance().startAudio();
 
 	//Game::GetInstance().GenerateWorld();
 	// Start 60 Hz frame rendering
