@@ -33,13 +33,13 @@ namespace world {
 	const int World::k_minRoomUnits = 1;
 	const int World::k_maxBranchingSize = 8;
 	const float World::k_lockedDoorProbability = 0.5;
-	const int World::k_roomCount = 5;
+	const int World::k_roomCount = 20;
 	//const Vector3 World::k_cameraOffset = Vector3(0.f, 8.f, -4.f);
 	//const Vector3 World::k_cameraOffset = Vector3(0.f, 1.f, -1.f);
 	const Vector3 World::k_cameraOffset = Vector3(0.f, 3.f, -3.f);
 
-	const int World::k_minToasters = 1;
-	const int World::k_maxToasters = 4;
+	const int World::k_minEnemies = 1;
+	const int World::k_maxEnemies = 3;
 	World::World()
 	{
 	}
@@ -91,7 +91,7 @@ namespace world {
 					IntVec2 adjacent = unit + direction;
 					if (!Occupied(adjacent, roomUnits)) {
 						
-						auto type = roomCount < k_roomCount - 1 ? Room::RoomType::Toaster : Room::RoomType::Duck;
+						auto type = roomCount < k_roomCount - 1 ? Room::RoomType::Normal : Room::RoomType::Duck;
 						vector<IntVec2> adjacentRoom = type == Room::RoomType::Duck ? CreateRoomUnitSet(adjacent, direction,IntVec2(1,1)) : CreateRoomUnitSet(adjacent, direction);
 						if (!Occupied(adjacentRoom, roomUnits)) {
 							doorCount++;
@@ -129,7 +129,19 @@ namespace world {
 
 			// bake each unit into entities
 			BakeRoomUnits(roomMap, roomNode->Data.Room);
-			if (roomNode->Data.Room.GetType() == Room::RoomType::Toaster) SpawnToasters(roomMap, roomNode->Data.Room);
+			if (roomNode->Data.Room.GetType() == Room::RoomType::Normal) {
+				if (math::Chance(0.5f)) {
+					SpawnEnemies(roomMap, roomNode->Data.Room, "toaster", 2.f, 3, 1);
+				}
+				else {
+					if (math::Chance(0.5f)) {
+						SpawnEnemies(roomMap, roomNode->Data.Room, "burnt_toast", 4.9f, 1, 1);
+					}
+					else {
+						SpawnEnemies(roomMap, roomNode->Data.Room, "moldy_loaf", 1.f, 10, 3);
+					}
+				}
+			}
 			GenerateKeys(seed);
 		}
 		
@@ -491,14 +503,14 @@ namespace world {
 			}
 		}
 	}
-	void World::SpawnToasters(map<IntVec2, RoomGenerationUnit, IntVec2Comparer>& roomUnits, Room& room)
+	void World::SpawnEnemies(map<IntVec2, RoomGenerationUnit, IntVec2Comparer>& roomUnits, Room& room, string model, float speed, int health, int damage)
 	{
-		auto toasterModel = ModelRepository::Get("toaster");
+		auto toasterModel = ModelRepository::Get(model);
 		
 		for (auto& unit : roomUnits) {
 			Vector3 unitCenter = Vector3(unit.first.X * k_roomUnitSize.X * k_tileSize, 0.f, unit.first.Y * k_roomUnitSize.Y * k_tileSize);
 			Vector3 unitSize = Vector3(k_roomUnitSize.X * k_tileSize, 1.f, k_roomUnitSize.Y * k_tileSize);
-			int toasterCount = math::RandWithin(k_minToasters, k_maxToasters);
+			int toasterCount = math::RandWithin(k_minEnemies, k_maxEnemies);
 			set<IntVec2,IntVec2Comparer> spawns;
 			while (spawns.size() < toasterCount) {
 				IntVec2 spawn((int)math::RandWithin(unitCenter.X - unitSize.X / 2.0 + 1, unitCenter.X + unitSize.X / 2.0 - 1),
@@ -510,7 +522,7 @@ namespace world {
 						Position(Vector3(spawn.X, unitCenter.Y, spawn.Y), Vector3(0.f,math::RandWithin(0.f,math::TWO_PI),0.f)),
 						Model(toasterModel),
 						Movement(),
-						Agent(Agent::AgentFaction::Toast, 2.f, 4, 6, 0.f, 1),
+						Agent(Agent::AgentFaction::Toast, speed, health, 6, 0.f, damage),
 						Collision(std::make_shared<Sphere>(Vector3::Zero, 0.25f)),
 						AI()
 					);

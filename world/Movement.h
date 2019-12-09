@@ -4,9 +4,13 @@
 #include "math/Vector3.h"
 using math::Vector3;
 
-struct Movement :
-	public ecs::Component
-{
-	Vector3 Velocity;
-};
-
+namespace world {
+	struct Movement :
+		public ecs::Component
+	{
+		Movement();
+		Movement(Vector3 velocity, Vector3 angularVelocity);
+		Vector3 Velocity;
+		Vector3 AngularVelocity;
+	};
+}

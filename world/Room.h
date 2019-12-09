@@ -37,7 +37,7 @@ namespace world {
 	public:
 		enum class RoomType {
 			Root,
-			Toaster,
+			Normal,
 			Duck
 		};
 		Room(RoomType type, Vector3 center);

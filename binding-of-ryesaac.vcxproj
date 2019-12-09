@@ -193,6 +193,7 @@
     <ClCompile Include="world\Collision.cpp" />
     <ClCompile Include="world\Door.cpp" />
     <ClCompile Include="world\Item.cpp" />
+    <ClCompile Include="world\Movement.cpp" />
     <ClCompile Include="world\Player.cpp" />
     <ClCompile Include="world\Position.cpp" />
     <ClCompile Include="world\Room.cpp" />

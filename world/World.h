@@ -73,7 +73,7 @@ namespace world {
 		vector<IntVec2> CreateRoomUnitSet(IntVec2 entrance, IntVec2 direction, IntVec2 size);
 		vector<IntVec2> CreateRoomUnitSet(IntVec2 entrance, IntVec2 direction);
 		void BakeRoomUnits(map<IntVec2,RoomGenerationUnit,IntVec2Comparer> & roomUnits, Room & room);
-		void SpawnToasters(map<IntVec2, RoomGenerationUnit, IntVec2Comparer>& roomUnits, Room& room);
+		void SpawnEnemies(map<IntVec2, RoomGenerationUnit, IntVec2Comparer>& roomUnits, Room& room, string model, float speed, int health, int damage);
 		void GenerateKeys(RoomNode root);
 		int RollDoorCount(int max);
 		int RollRoomUnits();
@@ -100,7 +100,7 @@ namespace world {
 		static const float k_lockedDoorProbability; // The probability that any given door will be locked
 		static const Vector3 k_cameraOffset;
 
-		static const int k_minToasters; // the minimum number of toasters that can spawn per room unit
-		static const int k_maxToasters; // the maximum number of toasters that can spawn per room unit
+		static const int k_minEnemies; // the minimum number of toasters that can spawn per room unit
+		static const int k_maxEnemies; // the maximum number of toasters that can spawn per room unit
 	};
 }

@@ -92,6 +92,7 @@ namespace world {
 			m_deferredTasks.push_back([=] {
 				ER.CreateEntity(
 					Position(m_center, Vector3::Zero),
+					Movement(Vector3::Zero,Vector3(0.f,1.f,0.f)),
 					Model(ModelRepository::Get(modelName)),
 					Collision(std::make_shared<geom::Sphere>(Vector3::Zero, 0.25f)),
 					Item(loot)
@@ -146,7 +147,7 @@ namespace world {
 					ER.CreateEntity(
 						Position(position),
 						projectile,
-						Movement(),
+						Movement(Vector3::Zero,Vector3(0.f,math::TWO_PI * 5.f,0.f)),
 						Collision(std::make_shared<geom::Sphere>(Vector3::Zero, 0.25), (uint32_t)CollisionChannel::Projectile),
 						Model(projectileModel)
 					);
@@ -209,6 +210,11 @@ namespace world {
 			auto& position = entity.Get<Position>();
 
 			position.Pos += movement.Velocity * elapsed;
+			position.Rot += movement.AngularVelocity * elapsed;
+			// Wrap rotations around 2 pi
+			position.Rot.X = std::fmodf(position.Rot.X, math::TWO_PI);
+			position.Rot.Y = std::fmodf(position.Rot.Y, math::TWO_PI);
+			position.Rot.Z = std::fmodf(position.Rot.Z, math::TWO_PI);
 		}
 	}
 	void Room::CollisionUpdate(double elapsed)
