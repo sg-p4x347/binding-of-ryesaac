@@ -44,6 +44,20 @@ namespace world {
 		void UpdateKeyState(char key, bool state);
 		void UpdateSpecialKeyState(int key, bool state);
 		void UpdateMousePosition(Vector2 position);
+	public:
+		//----------------------------------------------------------------
+		// Constants
+		static const float k_tileSize;
+		static const IntVec2 k_roomUnitSize;
+		static const int k_roomCount;
+		static const int k_maxRoomUnits; // each room unit is k_roomWidth tiles wide
+		static const int k_minRoomUnits; // each room unit is k_roomWidth tiles wide
+		static const int k_maxBranchingSize; // the maximum number of outward facing doors a room can have
+		static const float k_lockedDoorProbability; // The probability that any given door will be locked
+		static const Vector3 k_cameraOffset;
+
+		static const int k_minEnemies; // the minimum number of toasters that can spawn per room unit
+		static const int k_maxEnemies; // the maximum number of toasters that can spawn per room unit
 	private:
 		//----------------------------------------------------------------
 		// Rendering
@@ -89,18 +103,6 @@ namespace world {
 		map<IntVec2, RoomNode, IntVec2Comparer> m_roomMap;
 
 
-		//----------------------------------------------------------------
-		// Constants
-		static const float k_tileSize;
-		static const IntVec2 k_roomUnitSize;
-		static const int k_roomCount;
-		static const int k_maxRoomUnits; // each room unit is k_roomWidth tiles wide
-		static const int k_minRoomUnits; // each room unit is k_roomWidth tiles wide
-		static const int k_maxBranchingSize; // the maximum number of outward facing doors a room can have
-		static const float k_lockedDoorProbability; // The probability that any given door will be locked
-		static const Vector3 k_cameraOffset;
-
-		static const int k_minEnemies; // the minimum number of toasters that can spawn per room unit
-		static const int k_maxEnemies; // the maximum number of toasters that can spawn per room unit
+		
 	};
 }
