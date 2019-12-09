@@ -25,6 +25,10 @@ using math::PI;
 #include "Door.h"
 #include "AI.h"
 #include "LootItem.h"
+#include "game/Game.h"
+using game::Game;
+#include "game/MultimediaPlayer.h";
+using game::MultimediaPlayer;
 
 namespace world {
 	const float World::k_tileSize = 1.f;
@@ -33,7 +37,7 @@ namespace world {
 	const int World::k_minRoomUnits = 1;
 	const int World::k_maxBranchingSize = 8;
 	const float World::k_lockedDoorProbability = 0.5;
-	const int World::k_roomCount = 2;
+	const int World::k_roomCount = 5;
 	//const Vector3 World::k_cameraOffset = Vector3(0.f, 8.f, -4.f);
 	//const Vector3 World::k_cameraOffset = Vector3(0.f, 1.f, -1.f);
 	const Vector3 World::k_cameraOffset = Vector3(0.f, 3.f, -3.f);
@@ -143,17 +147,9 @@ namespace world {
 				}
 			}
 			else if (roomNode->Data.Room.GetType() == Room::RoomType::Duck) {
-				//if (math::Chance(0.5f)) {
-					SpawnEnemies(roomMap, roomNode->Data.Room, "toaster", 2.f, 3, 1, true);
-				//}
-				//else {
-					//if (math::Chance(0.5f)) {
-						SpawnEnemies(roomMap, roomNode->Data.Room, "burnt_toast", 4.9f, 1, 1, true);
-					//}
-					//else {
-						SpawnEnemies(roomMap, roomNode->Data.Room, "moldy_loaf", 1.f, 10, 3, true);
-					//}
-				//}
+				SpawnEnemies(roomMap, roomNode->Data.Room, "toaster", 2.f, 3, 1, true);
+				SpawnEnemies(roomMap, roomNode->Data.Room, "burnt_toast", 4.9f, 1, 1, true);
+				SpawnEnemies(roomMap, roomNode->Data.Room, "moldy_loaf", 1.f, 10, 3, true);
 			}
 			GenerateKeys(seed);
 		}
@@ -234,7 +230,7 @@ namespace world {
 
 			playerID = player.ID;
 			playerPosition = position.Pos;
-
+			
 			agent.Heading = Vector3();
 			if (m_keys['w'])
 				agent.Heading.Z += 1.f;
@@ -267,6 +263,12 @@ namespace world {
 			else {
 				// The arrow keys are not being pressed, stop attacking
 				agent.Attack = false;
+			}
+			if (agent.Health <= 0)
+			{
+				Game::GetInstance().state = GameState::Death;
+				MultimediaPlayer::SetUp("./Assets/audio/Ambience_MainMenu_ChiPhil.wav", true, true);
+				MultimediaPlayer::GetInstance().startAudio();
 			}
 		}
 		m_nextCurrentNode = GetContainingNode(playerPosition);
@@ -525,7 +527,7 @@ namespace world {
 			Vector3 unitSize = Vector3(k_roomUnitSize.X * k_tileSize, 1.f, k_roomUnitSize.Y * k_tileSize);
 			int toasterCount;
 			if (!maxBaddies) toasterCount = math::RandWithin(k_minEnemies, k_maxEnemies);
-			else toasterCount = 7;
+			else toasterCount = 5;
 			set<IntVec2,IntVec2Comparer> spawns;
 			while (spawns.size() < toasterCount) {
 				IntVec2 spawn((int)math::RandWithin(unitCenter.X - unitSize.X / 2.0 + 1, unitCenter.X + unitSize.X / 2.0 - 1),

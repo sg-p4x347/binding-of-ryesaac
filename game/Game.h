@@ -27,7 +27,8 @@ enum GameState {
 	MainMenu,
 	InGame_Standard,
 	InGame_BossBattle,
-	Outro
+	Outro,
+	Death
 };
 
 namespace game
