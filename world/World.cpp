@@ -384,6 +384,7 @@ namespace world {
 		}
 	}
 
+
 	bool World::Occupied(IntVec2 position, map<IntVec2, RoomGenerationUnit, IntVec2Comparer>& map)
 	{
 		return map.count(position);

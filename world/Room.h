@@ -11,6 +11,7 @@
 #include "Door.h"
 #include "AI.h"
 #include "Item.h"
+#include "Sweep.h"
 
 #include "LootItem.h"
 
@@ -24,14 +25,14 @@ namespace world {
 		Player,
 		Door,
 		AI,
-		Item
+		Item,
+		Sweep
 	> EntityRepository;
 
 	enum class CollisionChannel {
 		Door = 1,
 		Projectile = 2
 	};
-
 	class Room
 	{
 	public:
@@ -47,6 +48,8 @@ namespace world {
 		RoomType GetType();
 		void AddLoot(LootItem item);
 		void DropLoot();
+		void SweepAttack(int cornerIndex);
+		void SweepAttack(Vector3 pivot, Vector3 start, Vector3 end);
 	private:
 		void AgentUpdate(double elapsed);
 		void AiUpdate(double elapsed);
@@ -58,6 +61,9 @@ namespace world {
 		void CombatUpdate(double elapsed);
 		// Transfer world items to the player inventory when in contact
 		void ItemUpdate(double elapsed);
+		// Update sweeps
+		void SweepUpdate(double elapsed);
+
 		void DeferredUpdate(double elapsed);
 		
 	private:

@@ -118,6 +118,9 @@
     <ClCompile Include="world\Movement.cpp">
       <Filter>World</Filter>
     </ClCompile>
+    <ClCompile Include="world\Sweep.cpp">
+      <Filter>World</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -230,6 +233,9 @@
       <Filter>World</Filter>
     </ClInclude>
     <ClInclude Include="world\Item.h">
+      <Filter>World</Filter>
+    </ClInclude>
+    <ClInclude Include="world\Sweep.h">
       <Filter>World</Filter>
     </ClInclude>
   </ItemGroup>
