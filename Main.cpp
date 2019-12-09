@@ -1,17 +1,13 @@
 /*-----------------------------------------------------------------------------------------
  COURSE:				CSC525-001 Computer Graphics
  PROGRAMMERS:			Gage Coates		(Coates347)
-							Contributions:	
-							Percentage:		
+							Percentage:		33%
 						Paul Durham		(Durham321)
-							Contributions:
-							Percentage:
+							Percentage:		33%
 						Anthony Harris	(Anthony999)
-							Contributions:
-							Percentage:
+							Percentage:		33%
 						Devlyn Hogue	(Hogue3)
-							Contributions:
-							Percentage:
+							Percentage:		0%
  LAST MODIFIED:			12/09/2019
  DESCRIPTION:			A bread pun based version of the game "The Binding of Isaac" using
 						the OpenGL graphics library
