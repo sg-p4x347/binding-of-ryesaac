@@ -17,7 +17,7 @@ namespace world {
 			Vector3 Normal;
 			float PenetrationDepth;
 		};
-		vector<Contact> Contacts;
+		map<ecs::EntityID, Contact> Contacts;
 		shared_ptr<geom::CollisionVolume> CollisionVolume;
 		uint32_t Channel;
 	};

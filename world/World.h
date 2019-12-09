@@ -35,7 +35,7 @@ namespace world {
 		World();
 		void Generate();
 		// Dimensions are in tile units
-		RoomNode GenerateRoomNode(RoomNode predecessor, vector<IntVec2> units, bool locked);
+		RoomNode GenerateRoomNode(Room::RoomType type, RoomNode predecessor, vector<IntVec2> units, bool locked);
 
 		void Update();
 		void Render();
@@ -45,6 +45,10 @@ namespace world {
 		void UpdateSpecialKeyState(int key, bool state);
 		void UpdateMousePosition(Vector2 position);
 	private:
+		//----------------------------------------------------------------
+		// Rendering
+		void RenderHUD();
+		void RenderQuad(Vector2 position, Vector2 size, string texture);
 		//----------------------------------------------------------------
 		// Local room graph operations
 
@@ -66,9 +70,10 @@ namespace world {
 		bool Occupied(IntVec2 position,  map<IntVec2, RoomGenerationUnit, IntVec2Comparer>& map);
 		bool Occupied(vector<IntVec2> positions, map<IntVec2, RoomGenerationUnit, IntVec2Comparer>& map);
 		
+		vector<IntVec2> CreateRoomUnitSet(IntVec2 entrance, IntVec2 direction, IntVec2 size);
 		vector<IntVec2> CreateRoomUnitSet(IntVec2 entrance, IntVec2 direction);
 		void BakeRoomUnits(map<IntVec2,RoomGenerationUnit,IntVec2Comparer> & roomUnits, Room & room);
-		void SpawnToasters(map<IntVec2, RoomGenerationUnit, IntVec2Comparer>& roomUnits, Room& room);
+		void SpawnEnemies(map<IntVec2, RoomGenerationUnit, IntVec2Comparer>& roomUnits, Room& room, string model, float speed, int health, int damage);
 		void GenerateKeys(RoomNode root);
 		int RollDoorCount(int max);
 		int RollRoomUnits();
@@ -95,7 +100,7 @@ namespace world {
 		static const float k_lockedDoorProbability; // The probability that any given door will be locked
 		static const Vector3 k_cameraOffset;
 
-		static const int k_minToasters; // the minimum number of toasters that can spawn per room unit
-		static const int k_maxToasters; // the maximum number of toasters that can spawn per room unit
+		static const int k_minEnemies; // the minimum number of toasters that can spawn per room unit
+		static const int k_maxEnemies; // the maximum number of toasters that can spawn per room unit
 	};
 }

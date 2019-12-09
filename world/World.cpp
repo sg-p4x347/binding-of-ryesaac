@@ -38,8 +38,8 @@ namespace world {
 	//const Vector3 World::k_cameraOffset = Vector3(0.f, 1.f, -1.f);
 	const Vector3 World::k_cameraOffset = Vector3(0.f, 3.f, -3.f);
 
-	const int World::k_minToasters = 1;
-	const int World::k_maxToasters = 4;
+	const int World::k_minEnemies = 1;
+	const int World::k_maxEnemies = 3;
 	World::World()
 	{
 	}
@@ -56,7 +56,7 @@ namespace world {
 
 		vector<IntVec2> seedRoom{ IntVec2(0,0) };
 		// create the starting room
-		auto seed = GenerateRoomNode(nullptr, seedRoom, false);
+		auto seed = GenerateRoomNode(Room::RoomType::Root, nullptr, seedRoom, false);
 		roomCount++;
 		// Create the player
 		seed->Data.Room.GetER().CreateEntity(
@@ -90,7 +90,9 @@ namespace world {
 					IntVec2 direction(round(x), round(y));
 					IntVec2 adjacent = unit + direction;
 					if (!Occupied(adjacent, roomUnits)) {
-						vector<IntVec2> adjacentRoom = CreateRoomUnitSet(adjacent, direction);
+						
+						auto type = roomCount < k_roomCount - 1 ? Room::RoomType::Normal : Room::RoomType::Duck;
+						vector<IntVec2> adjacentRoom = type == Room::RoomType::Duck ? CreateRoomUnitSet(adjacent, direction,IntVec2(1,1)) : CreateRoomUnitSet(adjacent, direction);
 						if (!Occupied(adjacentRoom, roomUnits)) {
 							doorCount++;
 							roomCount++;
@@ -99,15 +101,15 @@ namespace world {
 							rooms.push(adjacentRoom);
 							
 							// Create a room node
-							bool locked = roomNode != seed && math::Chance(k_lockedDoorProbability);
-							auto node = GenerateRoomNode(roomNode, adjacentRoom, locked);
+							bool locked = roomNode->Data.Room.GetType() != Room::RoomType::Root && math::Chance(k_lockedDoorProbability);
+							auto node = GenerateRoomNode(type, roomNode, adjacentRoom, locked);
 							roomNodes.push(node);
 
 							// add the room units
 							for (auto& newUnit : adjacentRoom) {
 								roomUnits[newUnit] = RoomGenerationUnit();
 							}
-							auto door = std::make_shared<Door>(Door::DoorType::Normal, locked ? Door::DoorState::Locked : Door::DoorState::Closed);
+							auto door = std::make_shared<Door>(type == Room::RoomType::Duck ? Door::DoorType::Boss : Door::DoorType::Normal, locked ? Door::DoorState::Locked : Door::DoorState::Closed);
 							roomUnits[adjacent].Doors[(i + 2) % 4] = door;
 							roomUnits[unit].Doors[i] = door;
 
@@ -127,7 +129,19 @@ namespace world {
 
 			// bake each unit into entities
 			BakeRoomUnits(roomMap, roomNode->Data.Room);
-			if (roomNode != seed) SpawnToasters(roomMap, roomNode->Data.Room);
+			if (roomNode->Data.Room.GetType() == Room::RoomType::Normal) {
+				if (math::Chance(0.5f)) {
+					SpawnEnemies(roomMap, roomNode->Data.Room, "toaster", 2.f, 3, 1);
+				}
+				else {
+					if (math::Chance(0.5f)) {
+						SpawnEnemies(roomMap, roomNode->Data.Room, "burnt_toast", 4.9f, 1, 1);
+					}
+					else {
+						SpawnEnemies(roomMap, roomNode->Data.Room, "moldy_loaf", 1.f, 10, 3);
+					}
+				}
+			}
 			GenerateKeys(seed);
 		}
 		
@@ -135,7 +149,7 @@ namespace world {
 		m_currentNode = seed;
 	}
 
-	RoomNode World::GenerateRoomNode(RoomNode predecessor, vector<IntVec2> units, bool locked)
+	RoomNode World::GenerateRoomNode(Room::RoomType type, RoomNode predecessor, vector<IntVec2> units, bool locked)
 	{
 		// Calculate the center by averaging the unit centers
 		Vector3 center = Vector3::Zero;
@@ -144,7 +158,7 @@ namespace world {
 
 		center /= (float)units.size();
 
-		auto node = std::make_shared<GraphNode<RoomLink>>(RoomLink(Room(center),locked));
+		auto node = std::make_shared<GraphNode<RoomLink>>(RoomLink(Room(type, center),locked));
 		if (predecessor) {
 			node->AdjacentNodes.push_back(predecessor);
 			predecessor->AdjacentNodes.push_back(node);
@@ -154,6 +168,7 @@ namespace world {
 
 	void World::Render()
 	{
+		glEnable(GL_LIGHTING);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear color and depth buffers
 		glMatrixMode(GL_MODELVIEW);
 		glLoadIdentity();
@@ -163,7 +178,7 @@ namespace world {
 		int windowHeight = glutGet(GLUT_WINDOW_HEIGHT);
 		
 		gluPerspective(70.0, (double)windowWidth / windowHeight, 0.01, 1000.0);
-		
+	
 		// Get the player's position
 		for (auto& entity : m_currentNode->Data.Room.GetER().GetIterator<Player, Position>()) {
 			auto& player = entity.Get<Player>();
@@ -189,7 +204,7 @@ namespace world {
 
 		glPopMatrix();
 		
-
+		RenderHUD();
 		// flush out the buffer contents
 		glFinish();
 		glutSwapBuffers();
@@ -268,7 +283,8 @@ namespace world {
 
 		// Perform room system updates in the current room
 		m_currentNode->Data.Room.Update(elapsed);
-		
+		for (auto& adjacentNode : m_currentNode->AdjacentNodes)
+			adjacentNode->Data.Room.Update(elapsed);
 		// Remove unwanted entities
 		for (auto& id : m_removedEntities) {
 			m_currentNode->Data.Room.GetER().Remove(id);
@@ -293,6 +309,49 @@ namespace world {
 	void World::UpdateMousePosition(Vector2 position)
 	{
 
+	}
+	void World::RenderHUD()
+	{
+		glDisable(GL_LIGHTING);
+		glLoadIdentity();
+		float height = (float)glutGet(GLUT_WINDOW_HEIGHT) / (float)glutGet(GLUT_WINDOW_WIDTH);
+		gluOrtho2D(0, 1, 0, height);
+		static const float k_healthWidth = 0.3f;
+
+		for (auto& entity : m_currentNode->Data.Room.GetER().GetIterator<Player, Agent>()) {
+			auto& player = entity.Get<Player>();
+			auto& agent = entity.Get<Agent>();
+
+			Vector2 breadSize(k_healthWidth / std::ceil(agent.MaxHealth / 2.f), k_healthWidth / std::ceil(agent.MaxHealth / 2.f));
+			Vector2 cursor(1 - k_healthWidth, height - breadSize.Y);
+			for (int slice = 0; slice < agent.Health / 2; slice++) {
+				RenderQuad(cursor, breadSize, "bread_full");
+				cursor.X += breadSize.X;
+			}
+			if (agent.Health % 2 == 1) {
+				// Half slice
+				RenderQuad(cursor, breadSize, "bread_half");
+			}
+
+		}
+	}
+	void World::RenderQuad(Vector2 position, Vector2 size, string texture)
+	{
+		glBindTexture(GL_TEXTURE_2D, TextureRepository::GetID(texture));
+		glBegin(GL_QUADS);
+		glTexCoord2f(0.f,0.f);
+		glNormal3f(0.f, 0.f, -1.f);
+		glVertex2f(position.X, position.Y);
+		glTexCoord2f(1.f,0.f);
+		glNormal3f(0.f, 0.f, -1.f);
+		glVertex2f(position.X + size.X, position.Y);
+		glTexCoord2f(1.f,1.f);
+		glNormal3f(0.f, 0.f, -1.f);
+		glVertex2f(position.X + size.X, position.Y + size.Y);
+		glTexCoord2f(0.f, 1.f);
+		glNormal3f(0.f, 0.f, -1.f);
+		glVertex2f(position.X, position.Y + size.Y);
+		glEnd();
 	}
 	RoomNode World::GetContainingNode(Vector3 worldPosition)
 	{
@@ -337,23 +396,24 @@ namespace world {
 		}
 		return false;
 	}
-	vector<IntVec2> World::CreateRoomUnitSet(IntVec2 entrance, IntVec2 direction)
+	vector<IntVec2> World::CreateRoomUnitSet(IntVec2 entrance, IntVec2 direction, IntVec2 size)
 	{
 		IntVec2 tangent = IntVec2(-direction.Y, direction.X);
-		int width = RollRoomUnits();
-		int length = RollRoomUnits();
-
 		IntVec2 start = entrance + IntVec2(
-			min(tangent.X * width / 2, -tangent.X * width / 2),
-			min(tangent.Y * length / 2, -tangent.Y * length / 2)
+			min(tangent.X * size.X / 2, -tangent.X * size.X / 2),
+			min(tangent.Y * size.Y / 2, -tangent.Y * size.Y / 2)
 			);
 		vector<IntVec2> room;
-		for (int x = start.X; x < start.X + width; x++) {
-			for (int y = start.Y; y < start.Y + length; y++) {
+		for (int x = start.X; x < start.X + size.X; x++) {
+			for (int y = start.Y; y < start.Y + size.Y; y++) {
 				room.push_back(IntVec2(x, y));
 			}
 		}
 		return room;
+	}
+	vector<IntVec2> World::CreateRoomUnitSet(IntVec2 entrance, IntVec2 direction)
+	{
+		return CreateRoomUnitSet(entrance, direction, IntVec2(RollRoomUnits(), RollRoomUnits()));
 	}
 	void World::BakeRoomUnits(map<IntVec2, RoomGenerationUnit, IntVec2Comparer>& roomUnits, Room& room)
 	{
@@ -443,14 +503,14 @@ namespace world {
 			}
 		}
 	}
-	void World::SpawnToasters(map<IntVec2, RoomGenerationUnit, IntVec2Comparer>& roomUnits, Room& room)
+	void World::SpawnEnemies(map<IntVec2, RoomGenerationUnit, IntVec2Comparer>& roomUnits, Room& room, string model, float speed, int health, int damage)
 	{
-		auto toasterModel = ModelRepository::Get("toaster");
+		auto toasterModel = ModelRepository::Get(model);
 		
 		for (auto& unit : roomUnits) {
 			Vector3 unitCenter = Vector3(unit.first.X * k_roomUnitSize.X * k_tileSize, 0.f, unit.first.Y * k_roomUnitSize.Y * k_tileSize);
 			Vector3 unitSize = Vector3(k_roomUnitSize.X * k_tileSize, 1.f, k_roomUnitSize.Y * k_tileSize);
-			int toasterCount = math::RandWithin(k_minToasters, k_maxToasters);
+			int toasterCount = math::RandWithin(k_minEnemies, k_maxEnemies);
 			set<IntVec2,IntVec2Comparer> spawns;
 			while (spawns.size() < toasterCount) {
 				IntVec2 spawn((int)math::RandWithin(unitCenter.X - unitSize.X / 2.0 + 1, unitCenter.X + unitSize.X / 2.0 - 1),
@@ -462,7 +522,7 @@ namespace world {
 						Position(Vector3(spawn.X, unitCenter.Y, spawn.Y), Vector3(0.f,math::RandWithin(0.f,math::TWO_PI),0.f)),
 						Model(toasterModel),
 						Movement(),
-						Agent(Agent::AgentFaction::Toast, 2.f, 4, 6, 0.f, 1),
+						Agent(Agent::AgentFaction::Toast, speed, health, 6, 0.f, damage),
 						Collision(std::make_shared<Sphere>(Vector3::Zero, 0.25f)),
 						AI()
 					);

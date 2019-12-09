@@ -115,6 +115,9 @@
     <ClCompile Include="world\Item.cpp">
       <Filter>World</Filter>
     </ClCompile>
+    <ClCompile Include="world\Movement.cpp">
+      <Filter>World</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />

@@ -11,7 +11,8 @@ namespace world {
 			Locked
 		};
 		enum class DoorType {
-			Normal
+			Normal,
+			Boss
 		};
 		Door(DoorType type = DoorType::Normal, DoorState state = DoorState::Open);
 		DoorState State;
